@@ -9,6 +9,7 @@ import Performance from './components/Performance';
 import VideoUpload from './components/VideoUpload';
 import OnlineClasses from './components/OnlineClasses';
 import Playground from './components/Playground';
+import Assignments from './components/Assignments';
 
 interface User {
   name: string;
@@ -43,6 +44,8 @@ function App() {
         return <OnlineClasses />;
       case 'playground':
         return <Playground />;
+      case 'assignments':
+        return <Assignments />;
       default:
         return <Dashboard user={user} />;
     }

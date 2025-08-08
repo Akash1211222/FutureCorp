@@ -7,6 +7,7 @@ import {
   Upload, 
   Video,
   Code,
+  ClipboardList,
   Zap,
   Rocket
 } from 'lucide-react';
@@ -22,6 +23,7 @@ const Sidebar: React.FC<SidebarProps> = ({ userRole, currentView, onViewChange }
     { id: 'dashboard', label: 'Dashboard', icon: Home },
     { id: 'courses', label: 'Courses', icon: BookOpen },
     { id: 'students', label: 'Students', icon: Users },
+    { id: 'assignments', label: 'Assignments', icon: ClipboardList },
     { id: 'performance', label: 'Performance', icon: TrendingUp },
     { id: 'video-upload', label: 'Upload Content', icon: Upload },
     { id: 'online-classes', label: 'Online Classes', icon: Video },
@@ -31,6 +33,7 @@ const Sidebar: React.FC<SidebarProps> = ({ userRole, currentView, onViewChange }
   const studentMenuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Home },
     { id: 'courses', label: 'My Courses', icon: BookOpen },
+    { id: 'assignments', label: 'Assignments', icon: ClipboardList },
     { id: 'performance', label: 'My Progress', icon: TrendingUp },
     { id: 'online-classes', label: 'Live Classes', icon: Video },
     { id: 'playground', label: 'Code Playground', icon: Code },
