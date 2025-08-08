@@ -48,12 +48,14 @@ interface Assignment {
   dueDate: string;
   problems: string[]; // problem IDs
   totalPoints: number;
+  assignedStudents?: string[]; // student IDs
+  createdDate?: string;
   submitted?: boolean;
   score?: number;
 }
 
 const Assignments: React.FC = () => {
-  const [userRole] = useState<'teacher' | 'student'>('student');
+  const [userRole] = useState<'teacher' | 'student'>('teacher'); // Can be changed based on actual user
   const [selectedProblem, setSelectedProblem] = useState<DSAProblem | null>(null);
   const [code, setCode] = useState('');
   const [showHints, setShowHints] = useState(false);
@@ -61,8 +63,49 @@ const Assignments: React.FC = () => {
   const [testResults, setTestResults] = useState<any[]>([]);
   const [isRunning, setIsRunning] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showAssignForm, setShowAssignForm] = useState(false);
   const [filterDifficulty, setFilterDifficulty] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedProblems, setSelectedProblems] = useState<string[]>([]);
+  const [assignmentForm, setAssignmentForm] = useState({
+    title: '',
+    description: '',
+    dueDate: '',
+    selectedStudents: [] as string[],
+    problems: [] as string[]
+  });
+
+  // Mock student data for assignment
+  const [students] = useState([
+    { id: '1', name: 'Alice Johnson', email: 'alice@example.com' },
+    { id: '2', name: 'Bob Wilson', email: 'bob@example.com' },
+    { id: '3', name: 'Carol Davis', email: 'carol@example.com' },
+    { id: '4', name: 'David Brown', email: 'david@example.com' },
+    { id: '5', name: 'Emma Taylor', email: 'emma@example.com' },
+  ]);
+
+  const [teacherAssignments, setTeacherAssignments] = useState<Assignment[]>([
+    {
+      id: '1',
+      title: 'Basic Data Structures',
+      description: 'Practice fundamental data structure problems including arrays, stacks, and basic algorithms.',
+      dueDate: '2024-01-25',
+      problems: ['1', '2', '3'],
+      totalPoints: 300,
+      assignedStudents: ['1', '2', '3', '4', '5'],
+      createdDate: '2024-01-15'
+    },
+    {
+      id: '2',
+      title: 'Advanced Algorithms',
+      description: 'Solve complex algorithmic problems involving dynamic programming and tree traversals.',
+      dueDate: '2024-01-30',
+      problems: ['4', '5'],
+      totalPoints: 200,
+      assignedStudents: ['1', '3', '5'],
+      createdDate: '2024-01-18'
+    }
+  ]);
 
   const dsaProblems: DSAProblem[] = [
     {
@@ -283,6 +326,48 @@ const Assignments: React.FC = () => {
       case 'Hard': return 'text-red-600 bg-red-100';
       default: return 'text-gray-600 bg-gray-100';
     }
+  };
+
+  const handleCreateAssignment = (e: React.FormEvent) => {
+    e.preventDefault();
+    const newAssignment: Assignment = {
+      id: Date.now().toString(),
+      title: assignmentForm.title,
+      description: assignmentForm.description,
+      dueDate: assignmentForm.dueDate,
+      problems: selectedProblems,
+      totalPoints: selectedProblems.length * 100,
+      assignedStudents: assignmentForm.selectedStudents,
+      createdDate: new Date().toISOString().split('T')[0]
+    };
+    
+    setTeacherAssignments([...teacherAssignments, newAssignment]);
+    setShowCreateForm(false);
+    setAssignmentForm({
+      title: '',
+      description: '',
+      dueDate: '',
+      selectedStudents: [],
+      problems: []
+    });
+    setSelectedProblems([]);
+  };
+
+  const toggleProblemSelection = (problemId: string) => {
+    setSelectedProblems(prev => 
+      prev.includes(problemId) 
+        ? prev.filter(id => id !== problemId)
+        : [...prev, problemId]
+    );
+  };
+
+  const toggleStudentSelection = (studentId: string) => {
+    setAssignmentForm(prev => ({
+      ...prev,
+      selectedStudents: prev.selectedStudents.includes(studentId)
+        ? prev.selectedStudents.filter(id => id !== studentId)
+        : [...prev.selectedStudents, studentId]
+    }));
   };
 
   if (selectedProblem) {
@@ -589,7 +674,7 @@ function twoSum(nums, target) {
                 </div>
               </div>
             ))}
-          </div>
+          Create New Assignment
         </div>
       )}
 
@@ -669,6 +754,200 @@ function twoSum(nums, target) {
       </div>
     </div>
   );
+    {/* Teacher's Created Assignments */}
+    {userRole === 'teacher' && (
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+        <div className="p-6 border-b border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900">Your Created Assignments</h3>
+        </div>
+        <div className="divide-y divide-gray-200">
+          {teacherAssignments.map((assignment) => (
+            <div key={assignment.id} className="p-6 hover:bg-gray-50 transition-colors">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-lg font-medium text-gray-900 mb-2">{assignment.title}</h4>
+                  <p className="text-gray-600 mb-3">{assignment.description}</p>
+                  <div className="flex items-center space-x-4 text-sm text-gray-500">
+                    <div className="flex items-center">
+                      <Clock className="h-4 w-4 mr-1" />
+                      Due: {new Date(assignment.dueDate).toLocaleDateString()}
+                    </div>
+                    <div className="flex items-center">
+                      <Code className="h-4 w-4 mr-1" />
+                      {assignment.problems.length} problems
+                    </div>
+                    <div className="flex items-center">
+                      <Users className="h-4 w-4 mr-1" />
+                      {assignment.assignedStudents?.length || 0} students
+                    </div>
+                    <div className="flex items-center">
+                      <Award className="h-4 w-4 mr-1" />
+                      {assignment.totalPoints} points
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                    View Submissions
+                  </button>
+                  <button className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
+                    Edit
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+
+    {/* Student's Assignments List */}
+    {userRole === 'student' && (
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Create New Assignment</h3>
+        <form onSubmit={handleCreateAssignment} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Assignment Title
+              </label>
+              <input
+                type="text"
+                value={assignmentForm.title}
+                onChange={(e) => setAssignmentForm({...assignmentForm, title: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Enter assignment title"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Due Date
+              </label>
+              <input
+                type="date"
+                value={assignmentForm.dueDate}
+                onChange={(e) => setAssignmentForm({...assignmentForm, dueDate: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Description
+            </label>
+            <textarea
+              rows={3}
+              value={assignmentForm.description}
+              onChange={(e) => setAssignmentForm({...assignmentForm, description: e.target.value})}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Enter assignment description"
+              required
+            />
+          </div>
+
+          {/* Student Selection */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Assign to Students ({assignmentForm.selectedStudents.length} selected)
+            </label>
+            <div className="max-h-40 overflow-y-auto border border-gray-300 rounded-lg p-3">
+              <div className="space-y-2">
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={assignmentForm.selectedStudents.length === students.length}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setAssignmentForm({...assignmentForm, selectedStudents: students.map(s => s.id)});
+                      } else {
+                        setAssignmentForm({...assignmentForm, selectedStudents: []});
+                      }
+                    }}
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="ml-2 text-sm font-medium text-gray-900">Select All Students</span>
+                </label>
+                {students.map((student) => (
+                  <label key={student.id} className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={assignmentForm.selectedStudents.includes(student.id)}
+                      onChange={() => toggleStudentSelection(student.id)}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="ml-2 text-sm text-gray-700">{student.name} ({student.email})</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Problem Selection */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Select Problems ({selectedProblems.length} selected)
+            </label>
+            <div className="max-h-60 overflow-y-auto border border-gray-300 rounded-lg p-3">
+              <div className="space-y-2">
+                {dsaProblems.map((problem) => (
+                  <label key={problem.id} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={selectedProblems.includes(problem.id)}
+                        onChange={() => toggleProblemSelection(problem.id)}
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <div className="ml-3">
+                        <span className="text-sm font-medium text-gray-900">{problem.title}</span>
+                        <div className="flex items-center space-x-2 mt-1">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(problem.difficulty)}`}>
+                            {problem.difficulty}
+                          </span>
+                          <span className="text-xs text-gray-500">{problem.category}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <span className="text-sm text-gray-500">100 pts</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end space-x-3">
+            <button
+              type="button"
+              onClick={() => {
+                setShowCreateForm(false);
+                setSelectedProblems([]);
+                setAssignmentForm({
+                  title: '',
+                  description: '',
+                  dueDate: '',
+                  selectedStudents: [],
+                  problems: []
+                });
+              }}
+              className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={selectedProblems.length === 0 || assignmentForm.selectedStudents.length === 0}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Create Assignment ({selectedProblems.length * 100} points)
+            </button>
+          </div>
+        </form>
+      </div>
+    )}
+
 };
 
 export default Assignments;
