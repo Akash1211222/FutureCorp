@@ -19,6 +19,8 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ userRole, currentView, onViewChange }) => {
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
+
   const teacherMenuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Home },
     { id: 'courses', label: 'Courses', icon: BookOpen },
@@ -42,7 +44,26 @@ const Sidebar: React.FC<SidebarProps> = ({ userRole, currentView, onViewChange }
   const menuItems = userRole === 'teacher' ? teacherMenuItems : studentMenuItems;
 
   return (
-    <div className="fixed left-0 top-16 h-[calc(100vh-4rem)] w-64 glass border-r border-white/10 z-40">
+    <>
+      {/* Mobile Menu Button */}
+      <button
+        onClick={() => setIsMobileOpen(!isMobileOpen)}
+        className="md:hidden fixed top-4 left-4 z-50 p-2 glass rounded-lg text-white"
+      >
+        <Menu className="w-5 h-5" />
+      </button>
+
+      {/* Mobile Overlay */}
+      {isMobileOpen && (
+        <div
+          className="md:hidden fixed inset-0 bg-black/50 z-40"
+          onClick={() => setIsMobileOpen(false)}
+        />
+      )}
+
+      <div className={`fixed left-0 top-16 h-[calc(100vh-4rem)] w-64 glass border-r border-white/10 z-40 transition-transform duration-300 ${
+        isMobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+      }`}>
       {/* Floating background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-10 right-4 w-16 h-16 bg-gradient-to-r from-blue-400/10 to-purple-600/10 rounded-full blur-xl animate-float"></div>
@@ -66,7 +87,10 @@ const Sidebar: React.FC<SidebarProps> = ({ userRole, currentView, onViewChange }
           {menuItems.map((item, index) => (
             <button
               key={item.id}
-              onClick={() => onViewChange(item.id)}
+              onClick={() => {
+                onViewChange(item.id);
+                setIsMobileOpen(false);
+              }}
               className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-300 group relative overflow-hidden ${
                 currentView === item.id
                   ? 'bg-gradient-to-r from-blue-600/30 to-purple-600/30 text-white border border-blue-500/30 animate-glow'
@@ -122,7 +146,7 @@ const Sidebar: React.FC<SidebarProps> = ({ userRole, currentView, onViewChange }
           </div>
         )}
       </div>
-    </div>
+    </>
   );
 };
 

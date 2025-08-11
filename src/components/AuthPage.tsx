@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { GraduationCap, Mail, Lock, User, Eye, EyeOff, Rocket, Star, Zap } from 'lucide-react';
+import apiService from '../utils/api';
 
 interface User {
   name: string;
@@ -24,25 +25,41 @@ const AuthPage: React.FC<AuthPageProps> = ({ onLogin }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Simple validation
-    if (!formData.email || !formData.password) {
-      alert('Please fill in all required fields');
-      return;
+    handleAuth();
+  };
+
+  const handleAuth = async () => {
+    try {
+      // Simple validation
+      if (!formData.email || !formData.password) {
+        alert('Please fill in all required fields');
+        return;
+      }
+
+      if (!isLogin && !formData.name) {
+        alert('Please enter your name');
+        return;
+      }
+
+      let response;
+      if (isLogin) {
+        response = await apiService.login({
+          email: formData.email,
+          password: formData.password
+        });
+      } else {
+        response = await apiService.register({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+          role: formData.role
+        });
+      }
+
+      onLogin(response.user);
+    } catch (error: any) {
+      alert(error.message || 'Authentication failed');
     }
-
-    if (!isLogin && !formData.name) {
-      alert('Please enter your name');
-      return;
-    }
-
-    // Simulate authentication
-    const user: User = {
-      name: formData.name || formData.email.split('@')[0],
-      email: formData.email,
-      role: formData.role
-    };
-
-    onLogin(user);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {

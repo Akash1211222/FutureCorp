@@ -231,6 +231,32 @@ button:active {
     padding-left: 1rem;
     padding-right: 1rem;
   }
+  
+  .glass {
+    backdrop-filter: blur(5px);
+  }
+  
+  .sidebar-mobile {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
+  }
+  
+  .sidebar-mobile.open {
+    transform: translateX(0);
+  }
+  
+  .text-responsive {
+    font-size: 0.875rem;
+  }
+  
+  .card-mobile {
+    padding: 1rem;
+  }
+  
+  .grid-mobile {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
 }
 
 /* Ensure proper line clamping */

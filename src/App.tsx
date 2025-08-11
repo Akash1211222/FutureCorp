@@ -73,7 +73,7 @@ function App() {
           onViewChange={setCurrentView} 
         />
         
-        <main className="flex-1 ml-64 p-8 relative z-10">
+        <main className="flex-1 md:ml-64 p-4 md:p-8 relative z-10">
           {renderContent()}
         </main>
       </div>
