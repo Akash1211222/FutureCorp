@@ -236,15 +236,6 @@ button:active {
     backdrop-filter: blur(5px);
   }
   
-  .sidebar-mobile {
-    transform: translateX(-100%);
-    transition: transform 0.3s ease-in-out;
-  }
-  
-  .sidebar-mobile.open {
-    transform: translateX(0);
-  }
-  
   .text-responsive {
     font-size: 0.875rem;
   }
@@ -256,6 +247,33 @@ button:active {
   .grid-mobile {
     grid-template-columns: 1fr;
     gap: 1rem;
+  }
+  
+  /* Mobile specific adjustments */
+  .mobile-menu-button {
+    display: block;
+  }
+  
+  .desktop-sidebar {
+    display: none;
+  }
+  
+  .mobile-sidebar {
+    display: block;
+  }
+}
+
+@media (min-width: 769px) {
+  .mobile-menu-button {
+    display: none;
+  }
+  
+  .desktop-sidebar {
+    display: block;
+  }
+  
+  .mobile-sidebar {
+    display: none;
   }
 }
 

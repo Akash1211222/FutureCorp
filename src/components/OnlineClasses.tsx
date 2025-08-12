@@ -51,9 +51,12 @@ interface LiveClassState {
   }>;
 }
 
-const OnlineClasses: React.FC = () => {
+interface OnlineClassesProps {
+  userRole: 'teacher' | 'student';
+}
+
+const OnlineClasses: React.FC<OnlineClassesProps> = ({ userRole }) => {
   const [showScheduleForm, setShowScheduleForm] = useState(false);
-  const [userRole] = useState<'teacher' | 'student'>('student');
   const [selectedClass, setSelectedClass] = useState<OnlineClass | null>(null);
   const [newMessage, setNewMessage] = useState('');
   

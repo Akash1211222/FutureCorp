@@ -15,9 +15,12 @@ interface Course {
   lessons: number;
 }
 
-const Courses: React.FC = () => {
+interface CoursesProps {
+  userRole: 'teacher' | 'student';
+}
+
+const Courses: React.FC<CoursesProps> = ({ userRole }) => {
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [userRole] = useState<'teacher' | 'student'>('student'); // Default to student for now
   const [courses] = useState<Course[]>([
     {
       id: '1',

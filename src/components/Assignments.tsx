@@ -57,8 +57,11 @@ interface Student {
   email: string;
 }
 
-const Assignments: React.FC = () => {
-  const [userRole] = useState<'teacher' | 'student'>('student');
+interface AssignmentsProps {
+  userRole: 'teacher' | 'student';
+}
+
+const Assignments: React.FC<AssignmentsProps> = ({ userRole }) => {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [selectedProblem, setSelectedProblem] = useState<DSAProblem | null>(null);
   const [showHints, setShowHints] = useState<number>(0);

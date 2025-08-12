@@ -1,8 +1,11 @@
 import React from 'react';
 import { TrendingUp, Award, Target, Clock, BarChart3, Users } from 'lucide-react';
 
-const Performance: React.FC = () => {
-  const userRole: 'teacher' | 'student' = 'student'; // Default to student for now
+interface PerformanceProps {
+  userRole: 'teacher' | 'student';
+}
+
+const Performance: React.FC<PerformanceProps> = ({ userRole }) => {
   
   if (userRole === 'teacher') {
     return (

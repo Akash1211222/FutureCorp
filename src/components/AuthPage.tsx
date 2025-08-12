@@ -41,22 +41,14 @@ const AuthPage: React.FC<AuthPageProps> = ({ onLogin }) => {
         return;
       }
 
-      let response;
-      if (isLogin) {
-        response = await apiService.login({
-          email: formData.email,
-          password: formData.password
-        });
-      } else {
-        response = await apiService.register({
-          name: formData.name,
-          email: formData.email,
-          password: formData.password,
-          role: formData.role
-        });
-      }
-
-      onLogin(response.user);
+      // For demo purposes, create user object directly
+      const user: User = {
+        name: formData.name || 'Demo User',
+        email: formData.email,
+        role: formData.role
+      };
+      
+      onLogin(user);
     } catch (error: any) {
       alert(error.message || 'Authentication failed');
     }

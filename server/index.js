@@ -1,7 +1,5 @@
 const express = require('express');
 const cors = require('cors');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 const app = express();
@@ -16,9 +14,6 @@ const users = [];
 const assignments = [];
 const liveClasses = [];
 
-// JWT Secret
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
-
 // Auth Routes
 app.post('/api/auth/register', async (req, res) => {
   try {
@@ -30,31 +25,20 @@ app.post('/api/auth/register', async (req, res) => {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
     // Create user
     const user = {
       id: Date.now().toString(),
       name,
       email,
-      password: hashedPassword,
+      password: password, // In production, hash this
       role,
       createdAt: new Date()
     };
 
     users.push(user);
 
-    // Generate JWT
-    const token = jwt.sign(
-      { userId: user.id, email: user.email, role: user.role },
-      JWT_SECRET,
-      { expiresIn: '24h' }
-    );
-
     res.status(201).json({
       message: 'User created successfully',
-      token,
       user: {
         id: user.id,
         name: user.name,
@@ -77,22 +61,13 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
-    // Check password
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
+    // Simple password check (in production, use bcrypt)
+    if (user.password !== password) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
-    // Generate JWT
-    const token = jwt.sign(
-      { userId: user.id, email: user.email, role: user.role },
-      JWT_SECRET,
-      { expiresIn: '24h' }
-    );
-
     res.json({
       message: 'Login successful',
-      token,
       user: {
         id: user.id,
         name: user.name,
@@ -105,35 +80,13 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
-// Middleware to verify JWT
-const authenticateToken = (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-
-  if (!token) {
-    return res.status(401).json({ message: 'Access token required' });
-  }
-
-  jwt.verify(token, JWT_SECRET, (err, user) => {
-    if (err) {
-      return res.status(403).json({ message: 'Invalid token' });
-    }
-    req.user = user;
-    next();
-  });
-};
-
 // Assignment Routes
-app.post('/api/assignments', authenticateToken, (req, res) => {
+app.post('/api/assignments', (req, res) => {
   try {
-    if (req.user.role !== 'teacher') {
-      return res.status(403).json({ message: 'Only teachers can create assignments' });
-    }
-
     const assignment = {
       id: Date.now().toString(),
       ...req.body,
-      createdBy: req.user.userId,
+      createdBy: 'teacher',
       createdAt: new Date()
     };
 
@@ -144,35 +97,21 @@ app.post('/api/assignments', authenticateToken, (req, res) => {
   }
 });
 
-app.get('/api/assignments', authenticateToken, (req, res) => {
+app.get('/api/assignments', (req, res) => {
   try {
-    let userAssignments;
-    
-    if (req.user.role === 'teacher') {
-      userAssignments = assignments.filter(assignment => assignment.createdBy === req.user.userId);
-    } else {
-      userAssignments = assignments.filter(assignment => 
-        assignment.assignedTo.includes(req.user.userId)
-      );
-    }
-
-    res.json(userAssignments);
+    res.json(assignments);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
 
 // Live Classes Routes
-app.post('/api/live-classes', authenticateToken, (req, res) => {
+app.post('/api/live-classes', (req, res) => {
   try {
-    if (req.user.role !== 'teacher') {
-      return res.status(403).json({ message: 'Only teachers can create live classes' });
-    }
-
     const liveClass = {
       id: Date.now().toString(),
       ...req.body,
-      createdBy: req.user.userId,
+      createdBy: 'teacher',
       createdAt: new Date(),
       participants: [],
       isLive: false
@@ -185,28 +124,18 @@ app.post('/api/live-classes', authenticateToken, (req, res) => {
   }
 });
 
-app.get('/api/live-classes', authenticateToken, (req, res) => {
+app.get('/api/live-classes', (req, res) => {
   try {
-    let userClasses;
-    
-    if (req.user.role === 'teacher') {
-      userClasses = liveClasses.filter(liveClass => liveClass.createdBy === req.user.userId);
-    } else {
-      userClasses = liveClasses.filter(liveClass => 
-        liveClass.assignedTo && liveClass.assignedTo.includes(req.user.userId)
-      );
-    }
-
-    res.json(userClasses);
+    res.json(liveClasses);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
 
-app.post('/api/live-classes/:id/start', authenticateToken, (req, res) => {
+app.post('/api/live-classes/:id/start', (req, res) => {
   try {
     const classId = req.params.id;
-    const liveClass = liveClasses.find(c => c.id === classId && c.createdBy === req.user.userId);
+    const liveClass = liveClasses.find(c => c.id === classId);
     
     if (!liveClass) {
       return res.status(404).json({ message: 'Class not found' });
@@ -221,7 +150,7 @@ app.post('/api/live-classes/:id/start', authenticateToken, (req, res) => {
   }
 });
 
-app.post('/api/live-classes/:id/join', authenticateToken, (req, res) => {
+app.post('/api/live-classes/:id/join', (req, res) => {
   try {
     const classId = req.params.id;
     const liveClass = liveClasses.find(c => c.id === classId);
@@ -230,8 +159,9 @@ app.post('/api/live-classes/:id/join', authenticateToken, (req, res) => {
       return res.status(404).json({ message: 'Class not found' });
     }
 
-    if (!liveClass.participants.includes(req.user.userId)) {
-      liveClass.participants.push(req.user.userId);
+    const userId = req.body.userId || 'student';
+    if (!liveClass.participants.includes(userId)) {
+      liveClass.participants.push(userId);
     }
 
     res.json({ message: 'Joined class successfully', liveClass });
@@ -241,12 +171,8 @@ app.post('/api/live-classes/:id/join', authenticateToken, (req, res) => {
 });
 
 // Get all users (for teachers to assign work)
-app.get('/api/users', authenticateToken, (req, res) => {
+app.get('/api/users', (req, res) => {
   try {
-    if (req.user.role !== 'teacher') {
-      return res.status(403).json({ message: 'Only teachers can view users' });
-    }
-
     const userList = users
       .filter(user => user.role === 'student')
       .map(user => ({
