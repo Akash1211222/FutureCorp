@@ -275,6 +275,35 @@ button:active {
   .mobile-sidebar {
     display: none;
   }
+  
+  /* Desktop/Laptop specific fixes */
+  .main-content {
+    margin-left: 16rem; /* 64 * 0.25rem = 16rem for sidebar width */
+    padding: 2rem;
+  }
+  
+  .sidebar-fixed {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 16rem;
+    z-index: 30;
+  }
+  
+  .content-with-sidebar {
+    min-height: calc(100vh - 4rem);
+  }
+  
+  .desktop-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+  }
+  
+  .desktop-card {
+    min-height: 200px;
+  }
 }
 
 /* Ensure proper line clamping */

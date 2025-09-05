@@ -10,6 +10,8 @@ import VideoUpload from './components/VideoUpload';
 import OnlineClasses from './components/OnlineClasses';
 import Playground from './components/Playground';
 import Assignments from './components/Assignments';
+import DailyMotivation from './components/DailyMotivation';
+import Chatbot from './components/Chatbot';
 
 interface User {
   name: string;
@@ -20,6 +22,7 @@ interface User {
 function App() {
   const [user, setUser] = useState<User | null>(null);
   const [currentView, setCurrentView] = useState('dashboard');
+  const [showChatbot, setShowChatbot] = useState(false);
 
   const handleLogin = (userData: User) => {
     setUser(userData);
@@ -66,17 +69,25 @@ function App() {
 
       <Header user={user} onLogout={handleLogout} />
       
-      <div className="flex">
+      <div className="flex relative">
         <Sidebar 
           userRole={user.role} 
           currentView={currentView} 
           onViewChange={setCurrentView} 
         />
         
-        <main className="flex-1 md:ml-64 p-4 md:p-8 relative z-10">
+        <main className="flex-1 main-content relative z-10 content-with-sidebar">
+          <DailyMotivation />
           {renderContent()}
         </main>
       </div>
+      
+      {/* Chatbot */}
+      <Chatbot 
+        isOpen={showChatbot} 
+        onToggle={() => setShowChatbot(!showChatbot)} 
+        userRole={user.role}
+      />
     </div>
   );
 }

@@ -71,9 +71,9 @@ const Sidebar: React.FC<SidebarProps> = ({ userRole, currentView, onViewChange }
 
       {/* Sidebar */}
       <aside className={`
-        fixed left-0 top-0 h-full w-64 glass border-r border-white/10 z-40 transform transition-transform duration-300 ease-in-out
+        w-64 glass border-r border-white/10 z-40 transform transition-transform duration-300 ease-in-out
         ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
-        md:translate-x-0 md:relative md:z-10
+        md:translate-x-0 sidebar-fixed
       `}>
         <div className="p-6">
           <div className="flex items-center space-x-3 mb-8">

@@ -40,7 +40,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
   const stats = user?.role === 'teacher' ? teacherStats : studentStats;
 
   return (
-    <div className="space-y-8 relative">
+    <div className="space-y-6 relative">
       {/* Floating 3D background elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 right-20 w-32 h-32 bg-gradient-to-r from-blue-400/10 to-purple-600/10 rounded-full blur-xl animate-float"></div>
@@ -49,7 +49,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
       </div>
 
       {/* Welcome Section */}
-      <div className="glass rounded-3xl p-8 relative overflow-hidden">
+      <div className="glass rounded-2xl p-6 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-purple-600/10"></div>
         <div className="relative z-10">
           <div className="flex items-center space-x-4 mb-4">
@@ -57,10 +57,10 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
               <Rocket className="w-8 h-8 text-white" />
             </div>
             <div>
-              <h1 className="text-4xl font-bold gradient-text">
+              <h1 className="text-2xl md:text-3xl font-bold gradient-text">
                 Welcome back, {user?.name}! 🚀
               </h1>
-              <p className="text-gray-300 text-lg">
+              <p className="text-gray-300 text-base md:text-lg">
                 {user?.role === 'teacher' 
                   ? 'Ready to inspire minds and shape the future?' 
                   : 'Ready to learn something amazing today?'
@@ -83,11 +83,11 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="desktop-grid">
         {stats.map((stat, index) => (
           <div 
             key={stat.label} 
-            className="glass rounded-2xl p-6 card-hover relative overflow-hidden group"
+            className="glass rounded-2xl p-6 card-hover relative overflow-hidden group desktop-card"
             style={{ animationDelay: `${index * 100}ms` }}
           >
             <div className={`absolute inset-0 bg-gradient-to-r ${stat.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}></div>
@@ -103,13 +103,13 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
       </div>
 
       {/* Quick Actions */}
-      <div className="glass rounded-3xl p-8">
+      <div className="glass rounded-2xl p-6">
         <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
           <Target className="w-6 h-6 mr-3 text-blue-400 animate-pulse3d" />
           Quick Actions
         </h2>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="desktop-grid">
           {user?.role === 'teacher' ? (
             <>
               <ActionCard 
@@ -157,7 +157,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
       </div>
 
       {/* Recent Activity */}
-      <div className="glass rounded-3xl p-8">
+      <div className="glass rounded-2xl p-6">
         <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
           <Clock className="w-6 h-6 mr-3 text-green-400 animate-glow" />
           Recent Activity
