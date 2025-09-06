@@ -5,6 +5,7 @@ import { ErrorBoundary } from 'react-error-boundary';
 
 // Store providers
 import { AuthProvider } from './stores/authStore';
+import { LiveClassProvider } from './stores/liveClassStore';
 import { ThemeProvider } from './stores/themeStore';
 
 // Layout components
@@ -31,56 +32,58 @@ function App() {
     <ErrorBoundary FallbackComponent={ErrorFallback}>
       <ThemeProvider>
         <AuthProvider>
-          <Router>
-            <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-              <Suspense fallback={<LoadingScreen />}>
-                <Routes>
-                  {/* Public routes */}
-                  <Route path="/auth" element={<AuthPage />} />
-                  
-                  {/* Protected routes */}
-                  <Route
-                    path="/*"
-                    element={
-                      <ProtectedRoute>
-                        <Layout>
-                          <Routes>
-                            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                            <Route path="/dashboard" element={<Dashboard />} />
-                            <Route path="/assignments" element={<Assignments />} />
-                            <Route path="/courses" element={<Courses />} />
-                            <Route path="/playground" element={<Playground />} />
-                            <Route path="/classes" element={<LiveClasses />} />
-                            <Route path="/analytics" element={<Analytics />} />
-                            
-                            {/* Teacher/Admin routes */}
-                            <Route
-                              path="/students"
-                              element={
-                                <ProtectedRoute requiredRoles={['TEACHER', 'ADMIN']}>
-                                  <Students />
-                                </ProtectedRoute>
-                              }
-                            />
-                            
-                            {/* Admin only routes */}
-                            <Route
-                              path="/admin"
-                              element={
-                                <ProtectedRoute requiredRoles={['ADMIN']}>
-                                  <AdminPanel />
-                                </ProtectedRoute>
-                              }
-                            />
-                          </Routes>
-                        </Layout>
-                      </ProtectedRoute>
-                    }
-                  />
-                </Routes>
-              </Suspense>
-            </div>
-          </Router>
+          <LiveClassProvider>
+            <Router>
+              <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+                <Suspense fallback={<LoadingScreen />}>
+                  <Routes>
+                    {/* Public routes */}
+                    <Route path="/auth" element={<AuthPage />} />
+                    
+                    {/* Protected routes */}
+                    <Route
+                      path="/*"
+                      element={
+                        <ProtectedRoute>
+                          <Layout>
+                            <Routes>
+                              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                              <Route path="/dashboard" element={<Dashboard />} />
+                              <Route path="/assignments" element={<Assignments />} />
+                              <Route path="/courses" element={<Courses />} />
+                              <Route path="/playground" element={<Playground />} />
+                              <Route path="/classes" element={<LiveClasses />} />
+                              <Route path="/analytics" element={<Analytics />} />
+                              
+                              {/* Teacher/Admin routes */}
+                              <Route
+                                path="/students"
+                                element={
+                                  <ProtectedRoute requiredRoles={['TEACHER', 'ADMIN']}>
+                                    <Students />
+                                  </ProtectedRoute>
+                                }
+                              />
+                              
+                              {/* Admin only routes */}
+                              <Route
+                                path="/admin"
+                                element={
+                                  <ProtectedRoute requiredRoles={['ADMIN']}>
+                                    <AdminPanel />
+                                  </ProtectedRoute>
+                                }
+                              />
+                            </Routes>
+                          </Layout>
+                        </ProtectedRoute>
+                      }
+                    />
+                  </Routes>
+                </Suspense>
+              </div>
+            </Router>
+          </LiveClassProvider>
         </AuthProvider>
       </ThemeProvider>
     </ErrorBoundary>
