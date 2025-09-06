@@ -39,6 +39,23 @@ app.get("/api/health", (_req, res) => {
   });
 });
 
+// Root endpoint
+app.get("/", (_req, res) => {
+  res.json({
+    message: "FutureCorp's Learning Management System API",
+    version: "1.0.0",
+    status: "running",
+    endpoints: {
+      health: "/api/health",
+      auth: "/api/auth",
+      users: "/api/users",
+      assignments: "/api/assignments",
+      classes: "/api/classes"
+    },
+    documentation: "Visit /api/health for server status"
+  });
+});
+
 // API Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/users", usersRoutes);
