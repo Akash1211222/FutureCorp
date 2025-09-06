@@ -1,56 +1,62 @@
 import React, { useState } from 'react';
 import { GraduationCap, Mail, Lock, User, Eye, EyeOff, Rocket, Star, Zap } from 'lucide-react';
-import apiService from '../utils/api';
+import { useAuth } from '../contexts/AuthContext';
+import { useNavigate, useLocation } from 'react-router-dom';
 
-interface User {
-  name: string;
-  email: string;
-  role: 'teacher' | 'student';
-}
-
-interface AuthPageProps {
-  onLogin: (user: User) => void;
-}
-
-const AuthPage: React.FC<AuthPageProps> = ({ onLogin }) => {
+const AuthPage: React.FC = () => {
+  const { login, register } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
-    role: 'student' as 'teacher' | 'student'
+    role: 'STUDENT' as 'STUDENT' | 'TEACHER' | 'ADMIN'
   });
+
+  const from = location.state?.from?.pathname || '/dashboard';
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
     handleAuth();
   };
 
   const handleAuth = async () => {
+    setLoading(true);
+    setError('');
+    
     try {
       // Simple validation
       if (!formData.email || !formData.password) {
-        alert('Please fill in all required fields');
+        setError('Please fill in all required fields');
         return;
       }
 
       if (!isLogin && !formData.name) {
-        alert('Please enter your name');
+        setError('Please enter your name');
         return;
       }
 
-      // For demo purposes, create user object directly
-      const user: User = {
-        name: formData.name || 'Demo User',
-        email: formData.email,
-        role: formData.role
-      };
+      if (isLogin) {
+        await login(formData.email, formData.password);
+      } else {
+        await register({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+          role: formData.role
+        });
+      }
       
-      onLogin(user);
+      navigate(from, { replace: true });
     } catch (error: any) {
-      alert(error.message || 'Authentication failed');
+      setError(error.message || 'Authentication failed');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -196,17 +202,25 @@ const AuthPage: React.FC<AuthPageProps> = ({ onLogin }) => {
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 glass rounded-xl text-white focus:ring-2 focus:ring-blue-500/50 focus:border-transparent transition-all duration-300"
                   >
-                    <option value="student" className="bg-gray-800">Student</option>
-                    <option value="teacher" className="bg-gray-800">Teacher</option>
+                    <option value="STUDENT" className="bg-gray-800">Student</option>
+                    <option value="TEACHER" className="bg-gray-800">Teacher</option>
                   </select>
                 </div>
               )}
 
               <button
                 type="submit"
+                disabled={loading}
                 className="w-full py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-xl hover:from-blue-600 hover:to-purple-700 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
               >
-                {isLogin ? 'Sign In' : 'Create Account'}
+                {loading ? (
+                  <div className="flex items-center justify-center">
+                    <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full mr-2"></div>
+                    {isLogin ? 'Signing In...' : 'Creating Account...'}
+                  </div>
+                ) : (
+                  isLogin ? 'Sign In' : 'Create Account'
+                )}
               </button>
             </form>
 
@@ -225,10 +239,10 @@ const AuthPage: React.FC<AuthPageProps> = ({ onLogin }) => {
                 <button
                   onClick={() => {
                     setFormData({
-                      name: 'Demo Student',
-                      email: 'student@demo.com',
-                      password: 'demo123',
-                      role: 'student'
+                      name: 'Alice Johnson',
+                      email: 'alice@futurecorp.test',
+                      password: 'Student@123',
+                      role: 'STUDENT'
                     });
                   }}
                   className="p-2 text-xs bg-blue-500/20 text-blue-300 rounded-lg hover:bg-blue-500/30 transition-colors"
@@ -238,10 +252,10 @@ const AuthPage: React.FC<AuthPageProps> = ({ onLogin }) => {
                 <button
                   onClick={() => {
                     setFormData({
-                      name: 'Demo Teacher',
-                      email: 'teacher@demo.com',
-                      password: 'demo123',
-                      role: 'teacher'
+                      name: 'Dr. Sarah Johnson',
+                      email: 'teacher@futurecorp.test',
+                      password: 'Teacher@123',
+                      role: 'TEACHER'
                     });
                   }}
                   className="p-2 text-xs bg-purple-500/20 text-purple-300 rounded-lg hover:bg-purple-500/30 transition-colors"
@@ -249,7 +263,26 @@ const AuthPage: React.FC<AuthPageProps> = ({ onLogin }) => {
                   Demo Teacher
                 </button>
               </div>
+              <button
+                onClick={() => {
+                  setFormData({
+                    name: 'Admin User',
+                    email: 'admin@futurecorp.test',
+                    password: 'Admin@123',
+                    role: 'ADMIN'
+                  });
+                }}
+                className="w-full p-2 text-xs bg-red-500/20 text-red-300 rounded-lg hover:bg-red-500/30 transition-colors mt-2"
+              >
+                Demo Admin
+              </button>
             </div>
+            
+            {error && (
+              <div className="mt-4 p-3 bg-red-900/20 border border-red-600/30 rounded-lg">
+                <p className="text-red-400 text-sm">{error}</p>
+              </div>
+            )}
           </div>
         </div>
 

@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import { 
   Home, 
   BookOpen, 
@@ -9,45 +11,66 @@ import {
   Code, 
   ClipboardList,
   Menu,
-  X
+  X,
+  Shield
 } from 'lucide-react';
 
-interface SidebarProps {
-  userRole: 'teacher' | 'student';
-  currentView: string;
-  onViewChange: (view: string) => void;
-}
-
-const Sidebar: React.FC<SidebarProps> = ({ userRole, currentView, onViewChange }) => {
+const Sidebar: React.FC = () => {
+  const { user } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
+  if (!user) return null;
 
   const teacherMenuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: Home },
-    { id: 'courses', label: 'Courses', icon: BookOpen },
-    { id: 'students', label: 'Students', icon: Users },
-    { id: 'assignments', label: 'Assignments', icon: ClipboardList },
-    { id: 'performance', label: 'Analytics', icon: TrendingUp },
-    { id: 'video-upload', label: 'Video Content', icon: Upload },
-    { id: 'online-classes', label: 'Live Classes', icon: Video },
+    { id: '/dashboard', label: 'Dashboard', icon: Home },
+    { id: '/courses', label: 'Courses', icon: BookOpen },
+    { id: '/students', label: 'Students', icon: Users },
+    { id: '/assignments', label: 'Assignments', icon: ClipboardList },
+    { id: '/analytics', label: 'Analytics', icon: TrendingUp },
+    { id: '/videos', label: 'Video Content', icon: Upload },
+    { id: '/classes', label: 'Live Classes', icon: Video },
   ];
 
   const studentMenuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: Home },
-    { id: 'courses', label: 'My Courses', icon: BookOpen },
-    { id: 'assignments', label: 'Assignments', icon: ClipboardList },
-    { id: 'performance', label: 'Progress', icon: TrendingUp },
-    { id: 'online-classes', label: 'Live Classes', icon: Video },
-    { id: 'playground', label: 'Code Playground', icon: Code },
+    { id: '/dashboard', label: 'Dashboard', icon: Home },
+    { id: '/courses', label: 'My Courses', icon: BookOpen },
+    { id: '/assignments', label: 'Assignments', icon: ClipboardList },
+    { id: '/analytics', label: 'Progress', icon: TrendingUp },
+    { id: '/classes', label: 'Live Classes', icon: Video },
+    { id: '/playground', label: 'Code Playground', icon: Code },
   ];
 
-  const menuItems = userRole === 'teacher' ? teacherMenuItems : studentMenuItems;
+  const adminMenuItems = [
+    { id: '/admin', label: 'Admin Panel', icon: Shield },
+    { id: '/dashboard', label: 'Dashboard', icon: Home },
+    { id: '/courses', label: 'All Courses', icon: BookOpen },
+    { id: '/students', label: 'All Users', icon: Users },
+    { id: '/assignments', label: 'All Assignments', icon: ClipboardList },
+    { id: '/analytics', label: 'System Analytics', icon: TrendingUp },
+    { id: '/classes', label: 'All Classes', icon: Video },
+  ];
+
+  const getMenuItems = () => {
+    switch (user.role) {
+      case 'ADMIN':
+        return adminMenuItems;
+      case 'TEACHER':
+        return teacherMenuItems;
+      default:
+        return studentMenuItems;
+    }
+  };
+
+  const menuItems = getMenuItems();
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
-  const handleMenuClick = (viewId: string) => {
-    onViewChange(viewId);
+  const handleMenuClick = (path: string) => {
+    navigate(path);
     setIsMobileMenuOpen(false);
   };
 
@@ -89,7 +112,7 @@ const Sidebar: React.FC<SidebarProps> = ({ userRole, currentView, onViewChange }
           <nav className="space-y-2">
             {menuItems.map((item) => {
               const Icon = item.icon;
-              const isActive = currentView === item.id;
+              const isActive = location.pathname === item.id;
               
               return (
                 <button
@@ -117,11 +140,11 @@ const Sidebar: React.FC<SidebarProps> = ({ userRole, currentView, onViewChange }
             <div className="flex items-center space-x-3">
               <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center">
                 <span className="text-white text-sm font-bold">
-                  {userRole === 'teacher' ? 'T' : 'S'}
+                  {user.role === 'TEACHER' ? 'T' : user.role === 'ADMIN' ? 'A' : 'S'}
                 </span>
               </div>
               <div>
-                <p className="text-white text-sm font-medium capitalize">{userRole}</p>
+                <p className="text-white text-sm font-medium capitalize">{user.role.toLowerCase()}</p>
                 <p className="text-gray-400 text-xs">Active</p>
               </div>
             </div>

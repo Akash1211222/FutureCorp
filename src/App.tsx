@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './contexts/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
+import Layout from './components/Layout';
 import AuthPage from './components/AuthPage';
 import Dashboard from './components/Dashboard';
-import Header from './components/Header';
-import Sidebar from './components/Sidebar';
 import Courses from './components/Courses';
 import Students from './components/Students';
 import Performance from './components/Performance';
@@ -10,85 +12,47 @@ import VideoUpload from './components/VideoUpload';
 import OnlineClasses from './components/OnlineClasses';
 import Playground from './components/Playground';
 import Assignments from './components/Assignments';
-import DailyMotivation from './components/DailyMotivation';
-import Chatbot from './components/Chatbot';
-
-interface User {
-  name: string;
-  email: string;
-  role: 'teacher' | 'student';
-}
+import AdminDashboard from './components/AdminDashboard';
 
 function App() {
-  const [user, setUser] = useState<User | null>(null);
-  const [currentView, setCurrentView] = useState('dashboard');
-  const [showChatbot, setShowChatbot] = useState(false);
-
-  const handleLogin = (userData: User) => {
-    setUser(userData);
-  };
-
-  const handleLogout = () => {
-    setUser(null);
-    setCurrentView('dashboard');
-  };
-
-  const renderContent = () => {
-    switch (currentView) {
-      case 'courses':
-        return <Courses />;
-      case 'students':
-        return user?.role === 'teacher' ? <Students /> : <Dashboard user={user} />;
-      case 'performance':
-        return <Performance />;
-      case 'video-upload':
-        return user?.role === 'teacher' ? <VideoUpload /> : <Dashboard user={user} />;
-      case 'online-classes':
-        return <OnlineClasses />;
-      case 'playground':
-        return <Playground />;
-      case 'assignments':
-        return <Assignments />;
-      default:
-        return <Dashboard user={user} />;
-    }
-  };
-
-  if (!user) {
-    return <AuthPage onLogin={handleLogin} />;
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      {/* Animated background elements */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-gradient-to-r from-blue-400/20 to-purple-600/20 rounded-full animate-blob"></div>
-        <div className="absolute top-1/3 right-1/4 w-72 h-72 bg-gradient-to-r from-purple-400/20 to-pink-600/20 rounded-full animate-blob animation-delay-2000"></div>
-        <div className="absolute bottom-1/4 left-1/3 w-80 h-80 bg-gradient-to-r from-indigo-400/20 to-blue-600/20 rounded-full animate-blob animation-delay-4000"></div>
-      </div>
-
-      <Header user={user} onLogout={handleLogout} />
-      
-      <div className="flex relative">
-        <Sidebar 
-          userRole={user.role} 
-          currentView={currentView} 
-          onViewChange={setCurrentView} 
-        />
-        
-        <main className="flex-1 main-content relative z-10 content-with-sidebar">
-          <DailyMotivation />
-          {renderContent()}
-        </main>
-      </div>
-      
-      {/* Chatbot */}
-      <Chatbot 
-        isOpen={showChatbot} 
-        onToggle={() => setShowChatbot(!showChatbot)} 
-        userRole={user.role}
-      />
-    </div>
+    <AuthProvider>
+      <Router>
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+          <Routes>
+            <Route path="/login" element={<AuthPage />} />
+            <Route
+              path="/*"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Routes>
+                      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                      <Route path="/dashboard" element={<Dashboard />} />
+                      <Route path="/courses" element={<Courses />} />
+                      <Route path="/students" element={<Students />} />
+                      <Route path="/assignments" element={<Assignments />} />
+                      <Route path="/classes" element={<OnlineClasses />} />
+                      <Route path="/analytics" element={<Performance />} />
+                      <Route path="/videos" element={<VideoUpload />} />
+                      <Route path="/playground" element={<Playground />} />
+                      <Route
+                        path="/admin"
+                        element={
+                          <ProtectedRoute requiredRole="ADMIN">
+                            <AdminDashboard />
+                          </ProtectedRoute>
+                        }
+                      />
+                    </Routes>
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+        </div>
+      </Router>
+    </AuthProvider>
   );
 }
 

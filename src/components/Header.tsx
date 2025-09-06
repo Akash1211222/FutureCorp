@@ -1,18 +1,12 @@
 import React from 'react';
 import { Menu, Bell, User, GraduationCap, LogOut } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
-interface User {
-  name: string;
-  email: string;
-  role: 'teacher' | 'student';
-}
-
-interface HeaderProps {
-  user: User;
-  onLogout: () => void;
-}
-
-const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
+const Header: React.FC = () => {
+  const { user, logout } = useAuth();
+  
+  if (!user) return null;
+  
   return (
     <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
       <div className="px-4 sm:px-6 lg:px-8">
@@ -49,7 +43,7 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
                 <p className="text-xs text-gray-500 capitalize">{user.role}</p>
               </div>
               <button
-                onClick={onLogout}
+                onClick={logout}
                 className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
                 title="Logout"
               >

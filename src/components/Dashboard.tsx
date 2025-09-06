@@ -1,4 +1,5 @@
 import React from 'react';
+import { useAuth } from '../contexts/AuthContext';
 import { 
   BookOpen, 
   Users, 
@@ -12,17 +13,11 @@ import {
   Rocket
 } from 'lucide-react';
 
-interface User {
-  name: string;
-  email: string;
-  role: 'teacher' | 'student';
-}
-
-interface DashboardProps {
-  user: User | null;
-}
-
-const Dashboard: React.FC<DashboardProps> = ({ user }) => {
+const Dashboard: React.FC = () => {
+  const { user } = useAuth();
+  
+  if (!user) return null;
+  
   const teacherStats = [
     { icon: Users, label: 'Total Students', value: '156', color: 'from-blue-500 to-cyan-500' },
     { icon: BookOpen, label: 'Active Courses', value: '12', color: 'from-purple-500 to-pink-500' },
@@ -37,7 +32,17 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
     { icon: Trophy, label: 'Achievements', value: '15', color: 'from-orange-500 to-red-500' },
   ];
 
-  const stats = user?.role === 'teacher' ? teacherStats : studentStats;
+  const getStats = () => {
+    switch (user.role) {
+      case 'TEACHER':
+      case 'ADMIN':
+        return teacherStats;
+      default:
+        return studentStats;
+    }
+  };
+
+  const stats = getStats();
 
   return (
     <div className="space-y-6 relative">
@@ -61,7 +66,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
                 Welcome back, {user?.name}! 🚀
               </h1>
               <p className="text-gray-300 text-base md:text-lg">
-                {user?.role === 'teacher' 
+                {user.role === 'TEACHER' || user.role === 'ADMIN'
                   ? 'Ready to inspire minds and shape the future?' 
                   : 'Ready to learn something amazing today?'
                 }
@@ -110,7 +115,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
         </h2>
         
         <div className="desktop-grid">
-          {user?.role === 'teacher' ? (
+          {user.role === 'TEACHER' || user.role === 'ADMIN' ? (
             <>
               <ActionCard 
                 icon={BookOpen} 
@@ -171,7 +176,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
               </div>
               <div className="flex-1">
                 <p className="text-white font-medium">
-                  {user?.role === 'teacher' 
+                  {user.role === 'TEACHER' || user.role === 'ADMIN'
                     ? `Student completed "Advanced React Concepts"` 
                     : `Completed lesson: "JavaScript Fundamentals"`
                   }

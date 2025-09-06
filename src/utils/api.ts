@@ -1,31 +1,27 @@
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: 'teacher' | 'student';
-}
-
-interface AuthResponse {
+export interface ApiError {
   message: string;
-  token: string;
-  user: User;
+  errors?: any[];
 }
 
-class ApiService {
-  private token: string | null = null;
-
-  constructor() {
-    this.token = localStorage.getItem('authToken');
+class ApiClient {
+  private getAuthToken(): string | null {
+    return localStorage.getItem('accessToken');
   }
 
-  private async request(endpoint: string, options: RequestInit = {}) {
+  private async request<T>(
+    endpoint: string,
+    options: RequestInit = {}
+  ): Promise<T> {
     const url = `${API_BASE_URL}${endpoint}`;
+    const token = this.getAuthToken();
+
     const config: RequestInit = {
       headers: {
         'Content-Type': 'application/json',
-        ...(this.token && { Authorization: `Bearer ${this.token}` }),
+        ...(token && { Authorization: `Bearer ${token}` }),
+        ...options.headers,
       },
       ...options,
     };
@@ -35,6 +31,12 @@ class ApiService {
       const data = await response.json();
 
       if (!response.ok) {
+        if (response.status === 401) {
+          // Token expired or invalid
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('user');
+          window.location.href = '/login';
+        }
         throw new Error(data.message || 'Something went wrong');
       }
 
@@ -50,38 +52,47 @@ class ApiService {
     name: string;
     email: string;
     password: string;
-    role: 'teacher' | 'student';
-  }): Promise<AuthResponse> {
-    const response = await this.request('/auth/register', {
+    role?: 'STUDENT' | 'TEACHER' | 'ADMIN';
+  }) {
+    return this.request('/auth/register', {
       method: 'POST',
       body: JSON.stringify(userData),
     });
-
-    this.token = response.token;
-    localStorage.setItem('authToken', response.token);
-    return response;
   }
 
-  async login(credentials: {
-    email: string;
-    password: string;
-  }): Promise<AuthResponse> {
-    const response = await this.request('/auth/login', {
+  async login(credentials: { email: string; password: string }) {
+    return this.request('/auth/login', {
       method: 'POST',
       body: JSON.stringify(credentials),
     });
-
-    this.token = response.token;
-    localStorage.setItem('authToken', response.token);
-    return response;
   }
 
-  logout() {
-    this.token = null;
-    localStorage.removeItem('authToken');
+  async getProfile() {
+    return this.request('/auth/me');
   }
 
-  // Assignment methods
+  // Users methods
+  async getUsers() {
+    return this.request('/users');
+  }
+
+  async getStudents() {
+    return this.request('/users/students');
+  }
+
+  async getUserStats(userId: string) {
+    return this.request(`/users/${userId}/stats`);
+  }
+
+  // Assignments methods
+  async getAssignments() {
+    return this.request('/assignments');
+  }
+
+  async getAssignmentById(id: string) {
+    return this.request(`/assignments/${id}`);
+  }
+
   async createAssignment(assignmentData: any) {
     return this.request('/assignments', {
       method: 'POST',
@@ -89,43 +100,41 @@ class ApiService {
     });
   }
 
-  async getAssignments() {
-    return this.request('/assignments');
+  async submitSolution(data: { assignmentId: string; code: string }) {
+    return this.request('/assignments/submit', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
   }
 
-  // Live class methods
-  async createLiveClass(classData: any) {
-    return this.request('/live-classes', {
+  // Classes methods
+  async getClasses() {
+    return this.request('/classes');
+  }
+
+  async getClassById(id: string) {
+    return this.request(`/classes/${id}`);
+  }
+
+  async createClass(classData: any) {
+    return this.request('/classes', {
       method: 'POST',
       body: JSON.stringify(classData),
     });
   }
 
-  async getLiveClasses() {
-    return this.request('/live-classes');
-  }
-
-  async startLiveClass(classId: string) {
-    return this.request(`/live-classes/${classId}/start`, {
+  async startClass(id: string) {
+    return this.request(`/classes/${id}/start`, {
       method: 'POST',
     });
   }
 
-  async joinLiveClass(classId: string) {
-    return this.request(`/live-classes/${classId}/join`, {
+  async joinClass(id: string) {
+    return this.request(`/classes/${id}/join`, {
       method: 'POST',
     });
-  }
-
-  // User methods
-  async getUsers() {
-    return this.request('/users');
-  }
-
-  isAuthenticated(): boolean {
-    return !!this.token;
   }
 }
 
-export const apiService = new ApiService();
-export default apiService;
+export const apiClient = new ApiClient();
+export default apiClient;

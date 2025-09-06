@@ -1,13 +1,13 @@
 import React from 'react';
+import { useAuth } from '../contexts/AuthContext';
 import { TrendingUp, Award, Target, Clock, BarChart3, Users } from 'lucide-react';
 
-interface PerformanceProps {
-  userRole: 'teacher' | 'student';
-}
-
-const Performance: React.FC<PerformanceProps> = ({ userRole }) => {
+const Performance: React.FC = () => {
+  const { user } = useAuth();
   
-  if (userRole === 'teacher') {
+  if (!user) return null;
+  
+  if (user.role === 'TEACHER' || user.role === 'ADMIN') {
     return (
       <div className="space-y-6">
         <div>

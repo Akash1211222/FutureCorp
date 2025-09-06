@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 import { BookOpen, Users, Clock, Star, Play, Plus, Settings } from 'lucide-react';
 
 interface Course {
@@ -15,12 +16,12 @@ interface Course {
   lessons: number;
 }
 
-interface CoursesProps {
-  userRole: 'teacher' | 'student';
-}
-
-const Courses: React.FC<CoursesProps> = ({ userRole }) => {
+const Courses: React.FC = () => {
+  const { user } = useAuth();
   const [showCreateForm, setShowCreateForm] = useState(false);
+  
+  if (!user) return null;
+  
   const [courses] = useState<Course[]>([
     {
       id: '1',
@@ -30,7 +31,7 @@ const Courses: React.FC<CoursesProps> = ({ userRole }) => {
       students: 89,
       duration: '12 weeks',
       rating: 4.8,
-      progress: userRole === 'student' ? 75 : undefined,
+      progress: user.role === 'STUDENT' ? 75 : undefined,
       thumbnail: 'https://images.pexels.com/photos/11035380/pexels-photo-11035380.jpeg?auto=compress&cs=tinysrgb&w=400',
       status: 'active',
       lessons: 24
@@ -43,9 +44,9 @@ const Courses: React.FC<CoursesProps> = ({ userRole }) => {
       students: 124,
       duration: '8 weeks',
       rating: 4.6,
-      progress: userRole === 'student' ? 100 : undefined,
+      progress: user.role === 'STUDENT' ? 100 : undefined,
       thumbnail: 'https://images.pexels.com/photos/574071/pexels-photo-574071.jpeg?auto=compress&cs=tinysrgb&w=400',
-      status: userRole === 'student' ? 'completed' : 'active',
+      status: user.role === 'STUDENT' ? 'completed' : 'active',
       lessons: 18
     },
     {
@@ -56,7 +57,7 @@ const Courses: React.FC<CoursesProps> = ({ userRole }) => {
       students: 67,
       duration: '10 weeks',
       rating: 4.9,
-      progress: userRole === 'student' ? 43 : undefined,
+      progress: user.role === 'STUDENT' ? 43 : undefined,
       thumbnail: 'https://images.pexels.com/photos/196644/pexels-photo-196644.jpeg?auto=compress&cs=tinysrgb&w=400',
       status: 'active',
       lessons: 20
@@ -77,16 +78,16 @@ const Courses: React.FC<CoursesProps> = ({ userRole }) => {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
-            {userRole === 'teacher' ? 'My Courses' : 'Enrolled Courses'}
+            {user.role === 'TEACHER' || user.role === 'ADMIN' ? 'My Courses' : 'Enrolled Courses'}
           </h1>
           <p className="text-gray-600">
-            {userRole === 'teacher' 
+            {user.role === 'TEACHER' || user.role === 'ADMIN'
               ? 'Create and manage your courses.' 
               : 'Continue your learning journey.'
             }
           </p>
         </div>
-        {userRole === 'teacher' && (
+        {(user.role === 'TEACHER' || user.role === 'ADMIN') && (
           <button
             onClick={() => setShowCreateForm(true)}
             className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -98,6 +99,7 @@ const Courses: React.FC<CoursesProps> = ({ userRole }) => {
       </div>
 
       {showCreateForm && userRole === 'teacher' && (
+      {showCreateForm && (user.role === 'TEACHER' || user.role === 'ADMIN') && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Create New Course</h3>
           <form className="space-y-4">
@@ -195,6 +197,7 @@ const Courses: React.FC<CoursesProps> = ({ userRole }) => {
                 </span>
               </div>
               {userRole === 'teacher' && (
+              {(user.role === 'TEACHER' || user.role === 'ADMIN') && (
                 <div className="absolute top-4 right-4">
                   <button className="p-2 bg-white bg-opacity-90 rounded-lg hover:bg-opacity-100 transition-all">
                     <Settings className="h-4 w-4 text-gray-600" />
@@ -223,6 +226,7 @@ const Courses: React.FC<CoursesProps> = ({ userRole }) => {
               </div>
 
               {userRole === 'student' && course.progress !== undefined && (
+              {user.role === 'STUDENT' && course.progress !== undefined && (
                 <div className="mb-4">
                   <div className="flex justify-between text-sm mb-1">
                     <span className="text-gray-600">Progress</span>
@@ -241,10 +245,10 @@ const Courses: React.FC<CoursesProps> = ({ userRole }) => {
 
               <div className="flex items-center justify-between">
                 <div className="text-sm text-gray-600">
-                  {userRole === 'teacher' ? `${course.lessons} lessons` : `by ${course.instructor}`}
+                  {user.role === 'TEACHER' || user.role === 'ADMIN' ? `${course.lessons} lessons` : `by ${course.instructor}`}
                 </div>
                 <button className="inline-flex items-center px-3 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors">
-                  {userRole === 'teacher' ? (
+                  {user.role === 'TEACHER' || user.role === 'ADMIN' ? (
                     <>
                       <Settings className="h-4 w-4 mr-1" />
                       Manage
