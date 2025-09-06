@@ -5,6 +5,9 @@
   "prisma": {
     "schema": "prisma/schema.prisma"
   },
+  "prisma": {
+    "schema": "prisma/schema.prisma"
+  },
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "prisma:generate": "prisma generate",

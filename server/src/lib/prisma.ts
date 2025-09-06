@@ -1,9 +1,3 @@
-// server/src/lib/prisma.ts
 import { PrismaClient } from "@prisma/client";
-
 export const prisma = new PrismaClient();
-
-// Optional: graceful shutdown
-process.on("beforeExit", async () => {
-  await prisma.$disconnect();
-});
+process.on("beforeExit", async () => { await prisma.$disconnect(); });

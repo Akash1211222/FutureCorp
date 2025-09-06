@@ -1,12 +1,13 @@
-// server/prisma/schema.prisma
+// prisma/schema.prisma
 datasource db {
-  provider = "postgresql" // keep Postgres-compatible, but dev can use SQLite via env if needed
+  // For Postgres in prod; you can switch to SQLite locally if you want.
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
 generator client {
   provider   = "prisma-client-js"
-  engineType = "library" // Node-API engine (avoids system OpenSSL dependency)
+  engineType = "library"  // Node-API -> avoids system OpenSSL dependency
 }
 
 enum Role { STUDENT TEACHER ADMIN }
@@ -52,5 +53,5 @@ model Submission {
   assignment Assignment @relation(fields: [assignmentId], references: [id])
   student    User       @relation(fields: [studentId], references: [id])
 
-  @@unique([assignmentId, studentId]) // one submission per assignment per student (adjust if needed)
+  @@unique([assignmentId, studentId])
 }
