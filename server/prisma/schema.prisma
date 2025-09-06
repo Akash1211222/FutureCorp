@@ -1,13 +1,11 @@
-// prisma/schema.prisma
 datasource db {
-  // For Postgres in prod; you can switch to SQLite locally if you want.
-  provider = "postgresql"
+  provider = "postgresql"        // change to "sqlite" if you prefer for local dev
   url      = env("DATABASE_URL")
 }
 
 generator client {
   provider   = "prisma-client-js"
-  engineType = "library"  // Node-API -> avoids system OpenSSL dependency
+  engineType = "library"         // Node-API engine (no system OpenSSL needed)
 }
 
 enum Role { STUDENT TEACHER ADMIN }
