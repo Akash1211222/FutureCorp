@@ -25,6 +25,20 @@ app.use(cors({
   origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
   credentials: true 
 }));
+// Root route
+app.get('/', (req, res) => {
+  res.json({
+    message: 'FutureCorp Server API',
+    version: '1.0.0',
+    endpoints: {
+      auth: '/api/auth',
+      users: '/api/users',
+      assignments: '/api/assignments',
+      classes: '/api/classes'
+    }
+  });
+});
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(morgan("combined"));
