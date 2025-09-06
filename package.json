@@ -5,7 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "server": "cd server && npm install && npm run prisma:generate && npm run prisma:migrate && npm run dev",
+    "server": "npm run prisma:generate && npm run prisma:migrate && npm run server:dev",
+    "server:dev": "ts-node-dev --respawn --transpile-only server/src/index.ts",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "db:seed": "ts-node-dev --transpile-only server/src/seed.ts",
     "dev:full": "concurrently \"npm run server\" \"npm run dev\"",
     "build": "vite build",
     "lint": "eslint .",
