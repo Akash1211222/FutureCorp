@@ -184,15 +184,3 @@ if (!supabaseUrl || !supabaseServiceKey) {
     }
   };
 }
-
-  async getLiveClassById(id: string) {
-    const { data, error } = await supabase
-      .from('live_classes')
-      .select('*')
-      .eq('id', id)
-      .single();
-    
-    if (error) throw error;
-    return data;
-  }
-};
