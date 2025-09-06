@@ -1,5 +1,5 @@
-import { prisma } from '../lib/prisma.js';
 import { Role } from '@prisma/client';
+import { db } from '../lib/supabase.js';
 
 export interface CreateAssignmentData {
   title: string;
@@ -9,6 +9,7 @@ export interface CreateAssignmentData {
   examples?: any;
   constraints?: any;
   testCases?: any;
+  points?: number;
 }
 
 export interface SubmitSolutionData {
@@ -19,57 +20,46 @@ export interface SubmitSolutionData {
 
 export class AssignmentsService {
   static async createAssignment(data: CreateAssignmentData) {
-    const {
-      title,
-      description,
-      difficulty,
-      category,
-      examples,
-      constraints,
-      testCases
-    } = data;
-
-    const assignment = await prisma.assignment.create({
-      data: {
-        title,
-        description,
-        difficulty,
-        category,
-        examples: examples ? JSON.stringify(examples) : null,
-        constraints: constraints ? JSON.stringify(constraints) : null,
-        testCases: testCases ? JSON.stringify(testCases) : null
-      }
+    const assignment = await db.createAssignment({
+      ...data,
+      examples: data.examples ? JSON.stringify(data.examples) : null,
+      constraints: data.constraints ? JSON.stringify(data.constraints) : null,
+      testCases: data.testCases ? JSON.stringify(data.testCases) : null,
+      points: data.points || 100
     });
 
     return assignment;
   }
 
   static async getAssignments(userId: string, userRole: Role) {
-    return await prisma.assignment.findMany({
-      orderBy: { createdAt: 'desc' }
-    });
+    const assignments = await db.getAllAssignments();
+    
+    // Parse JSON fields
+    return assignments.map(assignment => ({
+      ...assignment,
+      examples: assignment.examples ? JSON.parse(assignment.examples) : null,
+      constraints: assignment.constraints ? JSON.parse(assignment.constraints) : null,
+      testCases: assignment.testCases ? JSON.parse(assignment.testCases) : null
+    }));
   }
 
   static async getAssignmentById(id: string) {
-    const assignment = await prisma.assignment.findUnique({
-      where: { id }
-    });
-
-    if (!assignment) {
-      throw new Error('Assignment not found');
-    }
-
-    return assignment;
+    const assignment = await db.getAssignmentById(id);
+    
+    // Parse JSON fields
+    return {
+      ...assignment,
+      examples: assignment.examples ? JSON.parse(assignment.examples) : null,
+      constraints: assignment.constraints ? JSON.parse(assignment.constraints) : null,
+      testCases: assignment.testCases ? JSON.parse(assignment.testCases) : null
+    };
   }
 
   static async submitSolution(data: SubmitSolutionData) {
     const { assignmentId, code, studentId } = data;
 
     // Check if assignment exists
-    const assignment = await prisma.assignment.findUnique({
-      where: { id: assignmentId }
-    });
-
+    const assignment = await db.getAssignmentById(assignmentId);
     if (!assignment) {
       throw new Error('Assignment not found');
     }
@@ -77,13 +67,13 @@ export class AssignmentsService {
     // Simulate code execution and testing
     const testResults = this.simulateCodeExecution(code);
 
-    const submission = await prisma.submission.create({
-      data: {
-        assignmentId,
-        studentId,
-        code,
-        result: JSON.stringify(testResults)
-      }
+    const submission = await db.createSubmission({
+      assignment_id: assignmentId,
+      student_id: studentId,
+      code,
+      result: JSON.stringify(testResults),
+      score: testResults.score,
+      status: testResults.passed ? 'passed' : 'failed'
     });
 
     return submission;
@@ -97,7 +87,12 @@ export class AssignmentsService {
     return {
       passed,
       score,
-      message: passed ? 'All tests passed!' : 'Some tests failed'
+      message: passed ? 'All tests passed!' : 'Some tests failed',
+      executionTime: Math.floor(Math.random() * 1000) + 100 // ms
     };
+  }
+
+  static async getSubmissions(assignmentId: string) {
+    return await db.getSubmissionsByAssignment(assignmentId);
   }
 }

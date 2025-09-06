@@ -1,11 +1,11 @@
-datasource db { 
-  provider = "sqlite"
-  url = env("DATABASE_URL") 
+generator client {
+  provider = "prisma-client-js"
 }
 
-generator client {
-  provider   = "prisma-client-js"
-  engineType = "library"  // Node-API (avoids OpenSSL)
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 enum Role {
@@ -15,13 +15,16 @@ enum Role {
 }
 
 model User {
-  id         String   @id @default(cuid())
-  name       String
-  email      String   @unique
-  password   String
-  role       Role     @default(STUDENT)
-  createdAt  DateTime @default(now())
+  id          String   @id @default(cuid())
+  name        String
+  email       String   @unique
+  password    String
+  role        Role     @default(STUDENT)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
   submissions Submission[]
+
+  @@map("users")
 }
 
 model Assignment {
@@ -33,27 +36,42 @@ model Assignment {
   examples    Json?
   constraints Json?
   testCases   Json?
+  points      Int      @default(100)
   createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
   submissions Submission[]
+
+  @@map("assignments")
 }
 
 model LiveClass {
-  id        String   @id @default(cuid())
-  title     String
-  schedule  DateTime
-  createdAt DateTime @default(now())
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  schedule    DateTime
+  duration    Int      @default(60)
+  meetingUrl  String?
+  status      String   @default("scheduled")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("live_classes")
 }
 
 model Submission {
-  id           String   @id @default(cuid())
+  id           String     @id @default(cuid())
   assignmentId String
   studentId    String
   code         String
   result       Json?
-  createdAt    DateTime @default(now())
+  score        Int?
+  status       String     @default("pending")
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
 
-  assignment Assignment @relation(fields: [assignmentId], references: [id])
-  student    User       @relation(fields: [studentId], references: [id])
+  assignment Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  student    User       @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   @@unique([assignmentId, studentId])
+  @@map("submissions")
 }

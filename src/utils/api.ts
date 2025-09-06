@@ -5,14 +5,6 @@ export interface ApiError {
   errors?: any[];
 }
 
-// Simple API helper function
-export async function api(path: string, options: RequestInit = {}) {
-  const headers = { "Content-Type": "application/json", ...(options.headers || {}) };
-  const res = await fetch(`${API_BASE_URL}${path}`, { ...options, headers });
-  if (!res.ok) throw new Error(await res.text());
-  return res.json();
-}
-
 class ApiClient {
   private getAuthToken(): string | null {
     return localStorage.getItem('accessToken');
@@ -36,18 +28,21 @@ class ApiClient {
 
     try {
       const response = await fetch(url, config);
-      const data = await response.json();
-
+      
       if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Network error' }));
+        
         if (response.status === 401) {
           // Token expired or invalid
           localStorage.removeItem('accessToken');
           localStorage.removeItem('user');
           window.location.href = '/login';
         }
-        throw new Error(data.message || 'Something went wrong');
+        
+        throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
       }
 
+      const data = await response.json();
       return data;
     } catch (error) {
       console.error('API request failed:', error);

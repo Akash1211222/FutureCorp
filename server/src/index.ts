@@ -2,7 +2,6 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import morgan from "morgan";
-import { prisma } from "./lib/prisma.js";
 import authRoutes from "./routes/auth.routes.js";
 import usersRoutes from "./routes/users.routes.js";
 import assignmentsRoutes from "./routes/assignments.routes.js";
@@ -16,16 +15,17 @@ app.use(cors({
   origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
   credentials: true 
 }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(morgan("combined"));
 
 // Health check
 app.get("/api/health", (_req, res) => {
   res.json({ 
-    message: "Server is running", 
+    message: "Server is running with Supabase", 
     timestamp: new Date().toISOString(),
-    port: process.env.PORT || 5050
+    port: process.env.PORT || 5050,
+    database: "Supabase PostgreSQL"
   });
 });
 
@@ -44,29 +44,20 @@ const server = app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🌐 CORS Origin: ${process.env.CORS_ORIGIN || 'http://localhost:5173'}`);
+  console.log(`🗄️  Database: Supabase PostgreSQL`);
 });
 
 // Graceful shutdown handling
 const gracefulShutdown = async (signal: string) => {
   console.log(`\n${signal} received. Starting graceful shutdown...`);
   
-  // Close server
-  server.close(async (err) => {
+  server.close((err) => {
     if (err) {
       console.error('Error closing server:', err);
       process.exit(1);
     }
     
     console.log('Server closed.');
-    
-    // Close database connection
-    try {
-      await prisma.$disconnect();
-      console.log('Database connection closed.');
-    } catch (error) {
-      console.error('Error closing database connection:', error);
-    }
-    
     process.exit(0);
   });
   

@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { Role } from '@prisma/client';
-import { prisma } from '../lib/prisma.js';
+import { db } from '../lib/supabase.js';
 
 export interface AuthRequest extends Request {
   user?: {
@@ -20,16 +20,18 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret-key') as any;
-    const user = await prisma.user.findUnique({
-      where: { id: decoded.id },
-      select: { id: true, email: true, role: true }
-    });
+    const user = await db.getUserById(decoded.id);
 
     if (!user) {
       return res.status(401).json({ message: 'Invalid token.' });
     }
 
-    req.user = user;
+    req.user = {
+      id: user.id,
+      email: user.email,
+      role: user.role as Role
+    };
+    
     next();
   } catch (error) {
     console.error('Authentication error:', error);
