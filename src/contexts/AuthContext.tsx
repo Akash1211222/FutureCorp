@@ -1,5 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '../lib/supabase';
+import { logger } from '../utils/logger';
+import { SecurityUtils } from '../utils/security';
+import { useToast } from '../components/Toast';
 
 interface User {
   id: string;
@@ -38,13 +41,16 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const { showToast } = useToast();
 
   useEffect(() => {
     const initAuth = async () => {
       try {
+        logger.info('Initializing authentication');
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session?.user) {
+          logger.info('Found existing session', { userId: session.user.id });
           // Get user profile from our users table
           const { data: userData, error } = await supabase
             .from('users')
@@ -54,10 +60,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
           if (userData && !error) {
             setUser(userData);
+            logger.info('User profile loaded', { userId: userData.id, role: userData.role });
           }
         }
       } catch (error) {
-        console.error('Auth initialization error:', error);
+        logger.error('Auth initialization failed', { error });
       } finally {
         setLoading(false);
       }
@@ -67,6 +74,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      logger.info('Auth state changed', { event });
+      
       if (event === 'SIGNED_IN' && session?.user) {
         const { data: userData } = await supabase
           .from('users')
@@ -76,9 +85,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
         if (userData) {
           setUser(userData);
+          showToast({
+            type: 'success',
+            title: 'Welcome back!',
+            message: `Signed in as ${userData.name}`
+          });
         }
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
+        SecurityUtils.clearSecureToken();
       }
     });
 
@@ -86,7 +101,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   const login = async (email: string, password: string) => {
+    // Rate limiting
+    if (SecurityUtils.isRateLimited('login', 5, 15 * 60 * 1000)) {
+      throw new Error('Too many login attempts. Please try again in 15 minutes.');
+    }
+
+    // Input validation
+    if (!SecurityUtils.validateInput(email, 'email')) {
+      throw new Error('Please enter a valid email address');
+    }
+
     try {
+      logger.info('Attempting login', { email });
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -104,9 +130,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         if (userError) throw userError;
         if (userData) {
           setUser(userData);
+          logger.info('Login successful', { userId: userData.id, role: userData.role });
         }
       }
     } catch (error: any) {
+      logger.error('Login failed', { email, error: error.message });
       throw new Error(error.message || 'Login failed');
     }
   };
@@ -117,7 +145,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     password: string;
     role?: 'STUDENT' | 'TEACHER' | 'ADMIN';
   }) => {
+    // Input validation
+    if (!SecurityUtils.validateInput(userData.email, 'email')) {
+      throw new Error('Please enter a valid email address');
+    }
+    if (!SecurityUtils.validateInput(userData.name, 'name')) {
+      throw new Error('Please enter a valid name (letters and spaces only)');
+    }
+    if (!SecurityUtils.validateInput(userData.password, 'password')) {
+      throw new Error('Password must be at least 8 characters with uppercase, lowercase, and number');
+    }
+
     try {
+      logger.info('Attempting registration', { email: userData.email, role: userData.role });
       // First create the auth user
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: userData.email,
@@ -143,19 +183,32 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         if (profileError) throw profileError;
         if (profileData) {
           setUser(profileData);
+          logger.info('Registration successful', { userId: profileData.id, role: profileData.role });
+          showToast({
+            type: 'success',
+            title: 'Account created!',
+            message: `Welcome to FutureCorp's Learning Platform, ${profileData.name}!`
+          });
         }
       }
     } catch (error: any) {
+      logger.error('Registration failed', { email: userData.email, error: error.message });
       throw new Error(error.message || 'Registration failed');
     }
   };
 
   const logout = async () => {
     try {
+      logger.info('User logging out', { userId: user?.id });
       await supabase.auth.signOut();
       setUser(null);
+      showToast({
+        type: 'info',
+        title: 'Signed out',
+        message: 'You have been successfully signed out'
+      });
     } catch (error) {
-      console.error('Logout error:', error);
+      logger.error('Logout failed', { error });
     }
   };
 

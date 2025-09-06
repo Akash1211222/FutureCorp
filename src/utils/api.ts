@@ -1,3 +1,6 @@
+import { cache, withCache } from './cache';
+import { PerformanceMonitor } from './performance';
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5050/api';
 
 export interface ApiError {
@@ -14,6 +17,7 @@ class ApiClient {
     endpoint: string,
     options: RequestInit = {}
   ): Promise<T> {
+    const timer = PerformanceMonitor.startTimer(`api_${endpoint}`);
     const url = `${API_BASE_URL}${endpoint}`;
     const token = this.getAuthToken();
 
@@ -36,6 +40,7 @@ class ApiClient {
           // Token expired or invalid
           localStorage.removeItem('accessToken');
           localStorage.removeItem('user');
+          cache.clear(); // Clear cache on auth failure
           window.location.href = '/login';
         }
         
@@ -43,11 +48,13 @@ class ApiClient {
       }
 
       const data = await response.json();
+      timer(); // Record performance metric
       return data;
     } catch (error) {
       if (error instanceof TypeError && error.message.includes('fetch')) {
-        throw new Error('Unable to connect to server. Please make sure the backend is running on port 5050.');
+        throw new Error('Unable to connect to server. Please check your internet connection and ensure Supabase is configured correctly.');
       }
+      timer(); // Record even failed requests
       console.error('API request failed:', error);
       throw error;
     }
@@ -78,32 +85,43 @@ class ApiClient {
   }
 
   // Users methods
-  async getUsers() {
-    return this.request('/users');
-  }
+  getUsers = withCache(
+    () => this.request('/users'),
+    () => 'users_all',
+    2 * 60 * 1000 // 2 minutes cache
+  );
 
-  async getStudents() {
-    return this.request('/users/students');
-  }
+  getStudents = withCache(
+    () => this.request('/users/students'),
+    () => 'users_students',
+    2 * 60 * 1000
+  );
 
   async getUserStats(userId: string) {
     return this.request(`/users/${userId}/stats`);
   }
 
-  // Assignments methods
-  async getAssignments() {
-    return this.request('/assignments');
-  }
+  // Assignments methods with caching
+  getAssignments = withCache(
+    () => this.request('/assignments'),
+    () => 'assignments_all',
+    5 * 60 * 1000 // 5 minutes cache
+  );
 
-  async getAssignmentById(id: string) {
-    return this.request(`/assignments/${id}`);
-  }
+  getAssignmentById = withCache(
+    (id: string) => this.request(`/assignments/${id}`),
+    (id: string) => `assignment_${id}`,
+    10 * 60 * 1000 // 10 minutes cache
+  );
 
   async createAssignment(assignmentData: any) {
-    return this.request('/assignments', {
+    const result = await this.request('/assignments', {
       method: 'POST',
       body: JSON.stringify(assignmentData),
     });
+    // Invalidate assignments cache
+    cache.delete('assignments_all');
+    return result;
   }
 
   async submitSolution(data: { assignmentId: string; code: string }) {
@@ -112,6 +130,61 @@ class ApiClient {
       body: JSON.stringify(data),
     });
   }
+
+  // Classes methods with caching
+  getClasses = withCache(
+    () => this.request('/classes'),
+    () => 'classes_all',
+    3 * 60 * 1000 // 3 minutes cache
+  );
+
+  getClassById = withCache(
+    (id: string) => this.request(`/classes/${id}`),
+    (id: string) => `class_${id}`,
+    5 * 60 * 1000
+  );
+
+  async createClass(classData: any) {
+    const result = await this.request('/classes', {
+      method: 'POST',
+      body: JSON.stringify(classData),
+    });
+    // Invalidate classes cache
+    cache.delete('classes_all');
+    return result;
+  }
+
+  async startClass(id: string) {
+    const result = await this.request(`/classes/${id}/start`, {
+      method: 'POST',
+    });
+    // Invalidate specific class cache
+    cache.delete(`class_${id}`);
+    cache.delete('classes_all');
+    return result;
+  }
+
+  async joinClass(id: string) {
+    return this.request(`/classes/${id}/join`, {
+      method: 'POST',
+    });
+  }
+
+  // Health check with retry logic
+  async healthCheck(retries = 3): Promise<boolean> {
+    for (let i = 0; i < retries; i++) {
+      try {
+        await this.request('/health');
+        return true;
+      } catch (error) {
+        if (i === retries - 1) return false;
+        await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+      }
+    }
+    return false;
+  }
+}
+
 
   // Classes methods
   async getClasses() {
