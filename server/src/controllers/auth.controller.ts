@@ -58,7 +58,11 @@ export class AuthController {
 
   static async getProfile(req: AuthRequest, res: Response, next: NextFunction) {
     try {
-      const user = await AuthService.getProfile(req.user!.id);
+      if (!req.user) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+      
+      const user = await AuthService.getProfile(req.user.id);
       res.json(user);
     } catch (error) {
       next(error);
