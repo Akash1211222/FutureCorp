@@ -1,4 +1,6 @@
-import "dotenv/config";
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express from "express";
 import cors from "cors";
 import morgan from "morgan";
@@ -7,6 +9,14 @@ import usersRoutes from "./routes/users.routes.js";
 import assignmentsRoutes from "./routes/assignments.routes.js";
 import classesRoutes from "./routes/classes.routes.js";
 import { errorHandler, notFound } from "./middlewares/error.js";
+
+console.log('🔧 Starting server...');
+console.log('📊 Environment variables loaded:', {
+  PORT: process.env.PORT,
+  NODE_ENV: process.env.NODE_ENV,
+  SUPABASE_URL: process.env.SUPABASE_URL ? 'Set' : 'Missing',
+  JWT_SECRET: process.env.JWT_SECRET ? 'Set' : 'Missing'
+});
 
 const app = express();
 
