@@ -1,10 +1,16 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-console.log('API_BASE_URL:', API_BASE_URL);
-
 export interface ApiError {
   message: string;
   errors?: any[];
+}
+
+// Simple API helper function
+export async function api(path: string, options: RequestInit = {}) {
+  const headers = { "Content-Type": "application/json", ...(options.headers || {}) };
+  const res = await fetch(`${API_BASE_URL}${path}`, { ...options, headers });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
 }
 
 class ApiClient {

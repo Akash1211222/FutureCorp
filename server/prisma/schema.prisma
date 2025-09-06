@@ -1,22 +1,22 @@
-datasource db {
-  provider = "postgresql"        // change to "sqlite" if you prefer for local dev
-  url      = env("DATABASE_URL")
+datasource db { 
+  provider = "sqlite"
+  url = env("DATABASE_URL") 
 }
 
 generator client {
   provider   = "prisma-client-js"
-  engineType = "library"         // Node-API engine (no system OpenSSL needed)
+  engineType = "library"  // Node-API (avoids OpenSSL)
 }
 
 enum Role { STUDENT TEACHER ADMIN }
 
 model User {
-  id         String      @id @default(cuid())
+  id         String   @id @default(cuid())
   name       String
-  email      String      @unique
+  email      String   @unique
   password   String
-  role       Role        @default(STUDENT)
-  createdAt  DateTime    @default(now())
+  role       Role     @default(STUDENT)
+  createdAt  DateTime @default(now())
   submissions Submission[]
 }
 
