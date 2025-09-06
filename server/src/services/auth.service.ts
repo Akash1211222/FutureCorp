@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { Role } from '@prisma/client';
-import { prisma } from '../lib/prisma';
+import { prisma } from '../lib/prisma.js';
 
 export interface RegisterData {
   name: string;
@@ -52,7 +52,7 @@ export class AuthService {
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role },
       process.env.JWT_SECRET!,
-      { expiresIn: '15m' }
+      { expiresIn: '7d' }
     );
 
     return { user, accessToken: token };
@@ -80,7 +80,7 @@ export class AuthService {
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role },
       process.env.JWT_SECRET!,
-      { expiresIn: '15m' }
+      { expiresIn: '7d' }
     );
 
     const { password: _, ...userWithoutPassword } = user;

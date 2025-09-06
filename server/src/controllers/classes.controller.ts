@@ -1,15 +1,14 @@
 import { Response, NextFunction } from 'express';
 import { z } from 'zod';
-import { ClassesService } from '../services/classes.service';
-import { AuthRequest } from '../middlewares/auth';
+import { ClassesService } from '../services/classes.service.js';
+import { AuthRequest } from '../middlewares/auth.js';
 
 const createClassSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   description: z.string().optional(),
   course: z.string().optional(),
   schedule: z.string().datetime('Invalid schedule format'),
-  duration: z.number().positive().optional(),
-  studentIds: z.array(z.string()).optional()
+  duration: z.number().positive().optional()
 });
 
 export class ClassesController {
@@ -18,10 +17,10 @@ export class ClassesController {
       const validatedData = createClassSchema.parse(req.body);
       const schedule = new Date(validatedData.schedule);
       
-      const liveClass = await ClassesService.createClass(
-        { ...validatedData, schedule },
-        req.user!.id
-      );
+      const liveClass = await ClassesService.createClass({
+        ...validatedData,
+        schedule
+      });
       
       res.status(201).json({
         message: 'Class created successfully',
@@ -54,11 +53,7 @@ export class ClassesController {
   static async getClassById(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const liveClass = await ClassesService.getClassById(
-        id,
-        req.user!.id,
-        req.user!.role
-      );
+      const liveClass = await ClassesService.getClassById(id);
       
       res.json(liveClass);
     } catch (error) {
@@ -83,11 +78,11 @@ export class ClassesController {
   static async joinClass(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const enrollment = await ClassesService.joinClass(id, req.user!.id);
+      const liveClass = await ClassesService.joinClass(id, req.user!.id);
       
       res.json({
         message: 'Joined class successfully',
-        enrollment
+        class: liveClass
       });
     } catch (error) {
       next(error);

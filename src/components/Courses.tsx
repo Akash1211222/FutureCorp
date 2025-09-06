@@ -1,3 +1,4 @@
+import { useAuth } from '../contexts/AuthContext';
 import React, { useState, useEffect } from 'react';
 import { Book, Users, Clock, Star, Plus, Edit, Trash2, Play } from 'lucide-react';
 
@@ -14,14 +15,13 @@ interface Course {
   thumbnail: string;
 }
 
-interface CoursesProps {
-  userRole: 'STUDENT' | 'TEACHER' | 'ADMIN';
-}
-
-const Courses: React.FC<CoursesProps> = ({ userRole }) => {
+const Courses: React.FC = () => {
+  const { user } = useAuth();
   const [courses, setCourses] = useState<Course[]>([]);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  
+  if (!user) return null;
 
   // Mock courses data
   useEffect(() => {
@@ -113,10 +113,10 @@ const Courses: React.FC<CoursesProps> = ({ userRole }) => {
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Courses</h1>
           <p className="text-gray-600 mt-1">
-            {userRole === 'TEACHER' ? 'Manage your courses' : 'Explore and enroll in courses'}
+            {user.role === 'TEACHER' || user.role === 'ADMIN' ? 'Manage your courses' : 'Explore and enroll in courses'}
           </p>
         </div>
-        {userRole === 'TEACHER' && (
+        {(user.role === 'TEACHER' || user.role === 'ADMIN') && (
           <button
             onClick={handleCreateCourse}
             className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
@@ -216,7 +216,7 @@ const Courses: React.FC<CoursesProps> = ({ userRole }) => {
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-500">by {course.instructor}</span>
                 <div className="flex gap-2">
-                  {userRole === 'TEACHER' ? (
+                  {user.role === 'TEACHER' || user.role === 'ADMIN' ? (
                     <>
                       <button
                         onClick={() => handleEditCourse(course)}

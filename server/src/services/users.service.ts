@@ -1,4 +1,4 @@
-import { prisma } from '../lib/prisma';
+import { prisma } from '../lib/prisma.js';
 import { Role } from '@prisma/client';
 
 export class UsersService {
@@ -54,26 +54,12 @@ export class UsersService {
 
   static async getUserStats(userId: string) {
     const user = await prisma.user.findUnique({
-      where: { id },
+      where: { id: userId },
       include: {
         submissions: {
           include: {
             assignment: {
-              select: { title: true, points: true }
-            }
-          }
-        },
-        assignmentAssigned: {
-          include: {
-            assignment: {
-              select: { title: true, points: true }
-            }
-          }
-        },
-        classEnrollments: {
-          include: {
-            class: {
-              select: { title: true, schedule: true }
+              select: { title: true }
             }
           }
         }
@@ -84,20 +70,12 @@ export class UsersService {
       throw new Error('User not found');
     }
 
-    const totalAssignments = user.assignmentAssigned.length;
-    const completedAssignments = user.submissions.filter(s => s.passed).length;
-    const totalScore = user.submissions.reduce((sum, s) => sum + (s.score || 0), 0);
-    const averageScore = user.submissions.length > 0 
-      ? Math.round(totalScore / user.submissions.length) 
-      : 0;
+    const totalSubmissions = user.submissions.length;
+    const recentSubmissions = user.submissions.slice(-5);
 
     return {
-      totalAssignments,
-      completedAssignments,
-      totalScore,
-      averageScore,
-      enrolledClasses: user.classEnrollments.length,
-      recentSubmissions: user.submissions.slice(-5)
+      totalSubmissions,
+      recentSubmissions
     };
   }
 }

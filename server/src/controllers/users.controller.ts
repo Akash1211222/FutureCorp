@@ -1,6 +1,6 @@
 import { Response, NextFunction } from 'express';
-import { UsersService } from '../services/users.service';
-import { AuthRequest } from '../middlewares/auth';
+import { UsersService } from '../services/users.service.js';
+import { AuthRequest } from '../middlewares/auth.js';
 
 export class UsersController {
   static async getAllUsers(req: AuthRequest, res: Response, next: NextFunction) {

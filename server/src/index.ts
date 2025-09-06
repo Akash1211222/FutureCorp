@@ -3,12 +3,12 @@ import cors from 'cors';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
 
-import authRoutes from './routes/auth.routes';
-import usersRoutes from './routes/users.routes';
-import assignmentsRoutes from './routes/assignments.routes';
-import classesRoutes from './routes/classes.routes';
+import authRoutes from './routes/auth.routes.js';
+import usersRoutes from './routes/users.routes.js';
+import assignmentsRoutes from './routes/assignments.routes.js';
+import classesRoutes from './routes/classes.routes.js';
 
-import { errorHandler, notFound } from './middlewares/error';
+import { errorHandler, notFound } from './middlewares/error.js';
 
 dotenv.config();
 
@@ -41,6 +41,6 @@ app.use(errorHandler);
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📊 Environment: ${process.env.NODE_ENV}`);
-  console.log(`🌐 CORS Origin: ${process.env.CORS_ORIGIN}`);
+  console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🌐 CORS Origin: ${process.env.CORS_ORIGIN || 'http://localhost:5173'}`);
 });

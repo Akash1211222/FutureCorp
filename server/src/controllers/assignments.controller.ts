@@ -1,7 +1,7 @@
 import { Response, NextFunction } from 'express';
 import { z } from 'zod';
-import { AssignmentsService } from '../services/assignments.service';
-import { AuthRequest } from '../middlewares/auth';
+import { AssignmentsService } from '../services/assignments.service.js';
+import { AuthRequest } from '../middlewares/auth.js';
 
 const createAssignmentSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -10,11 +10,7 @@ const createAssignmentSchema = z.object({
   category: z.string().min(1, 'Category is required'),
   examples: z.any().optional(),
   constraints: z.any().optional(),
-  testCases: z.any().optional(),
-  hints: z.any().optional(),
-  points: z.number().positive().optional(),
-  studentIds: z.array(z.string()).optional(),
-  dueDate: z.string().datetime().optional()
+  testCases: z.any().optional()
 });
 
 const submitSolutionSchema = z.object({
@@ -26,12 +22,7 @@ export class AssignmentsController {
   static async createAssignment(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const validatedData = createAssignmentSchema.parse(req.body);
-      const dueDate = validatedData.dueDate ? new Date(validatedData.dueDate) : undefined;
-      
-      const assignment = await AssignmentsService.createAssignment(
-        { ...validatedData, dueDate },
-        req.user!.id
-      );
+      const assignment = await AssignmentsService.createAssignment(validatedData);
       
       res.status(201).json({
         message: 'Assignment created successfully',
@@ -64,11 +55,7 @@ export class AssignmentsController {
   static async getAssignmentById(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const assignment = await AssignmentsService.getAssignmentById(
-        id,
-        req.user!.id,
-        req.user!.role
-      );
+      const assignment = await AssignmentsService.getAssignmentById(id);
       
       res.json(assignment);
     } catch (error) {
