@@ -45,6 +45,9 @@ class ApiClient {
       const data = await response.json();
       return data;
     } catch (error) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Unable to connect to server. Please make sure the backend is running on port 5050.');
+      }
       console.error('API request failed:', error);
       throw error;
     }
