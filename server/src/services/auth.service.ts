@@ -1,4 +1,4 @@
-import bcrypt from 'bcryptjs';
+import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { Role } from '@prisma/client';
 import { prisma } from '../lib/prisma.js';

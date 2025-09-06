@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import bcrypt from 'bcryptjs';
+import bcrypt from 'bcrypt';
 import { prisma } from './lib/prisma.js';
 
 async function main() {

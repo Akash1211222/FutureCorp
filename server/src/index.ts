@@ -11,5 +11,5 @@ app.use(morgan("dev"));
 app.get("/api/health", (_req, res) => res.json({ ok: true }));
 
 app.listen(process.env.PORT || 5000, () =>
-  console.log(`API on http://localhost:${process.env.PORT || 5000}`)
+  console.log(`API on http://localhost:${process.env.PORT || 5001}`)
 );
