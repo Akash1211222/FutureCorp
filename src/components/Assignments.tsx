@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 import { 
   ClipboardList, 
   Plus, 
@@ -57,11 +58,8 @@ interface Student {
   email: string;
 }
 
-interface AssignmentsProps {
-  userRole: 'teacher' | 'student';
-}
-
-const Assignments: React.FC<AssignmentsProps> = ({ userRole }) => {
+const Assignments: React.FC = () => {
+  const { user } = useAuth();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [selectedProblem, setSelectedProblem] = useState<DSAProblem | null>(null);
   const [showHints, setShowHints] = useState<number>(0);
@@ -70,6 +68,8 @@ const Assignments: React.FC<AssignmentsProps> = ({ userRole }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDifficulty, setSelectedDifficulty] = useState('all');
   const [selectedCategory, setSelectedCategory] = useState('all');
+
+  if (!user) return null;
 
   // Mock data
   const [students] = useState<Student[]>([
@@ -462,16 +462,16 @@ const Assignments: React.FC<AssignmentsProps> = ({ userRole }) => {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold gradient-text">
-              {userRole === 'teacher' ? 'Assignment Management' : 'My Assignments'}
+              {user.role === 'TEACHER' || user.role === 'ADMIN' ? 'Assignment Management' : 'My Assignments'}
             </h1>
             <p className="text-gray-300 text-sm md:text-base">
-              {userRole === 'teacher' 
+              {user.role === 'TEACHER' || user.role === 'ADMIN'
                 ? 'Create and manage coding assignments for your students.' 
                 : 'Practice coding problems and complete your assignments.'
               }
             </p>
           </div>
-          {userRole === 'teacher' && (
+          {(user.role === 'TEACHER' || user.role === 'ADMIN') && (
             <button
               onClick={() => setShowCreateForm(true)}
               className="flex items-center px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-300 text-sm md:text-base"
@@ -564,7 +564,7 @@ const Assignments: React.FC<AssignmentsProps> = ({ userRole }) => {
         </div>
 
         {/* Assignments Section for Students */}
-        {userRole === 'student' && (
+        {user.role === 'STUDENT' && (
           <div className="glass rounded-2xl p-4 md:p-6">
             <h2 className="text-xl font-bold text-white mb-4 flex items-center">
               <ClipboardList className="h-5 w-6 mr-2 text-blue-400" />

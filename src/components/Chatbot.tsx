@@ -12,7 +12,7 @@ interface Message {
 interface ChatbotProps {
   isOpen: boolean;
   onToggle: () => void;
-  userRole: 'teacher' | 'student';
+  userRole: 'STUDENT' | 'TEACHER' | 'ADMIN';
 }
 
 const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onToggle, userRole }) => {

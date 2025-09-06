@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 import { 
   Calendar, 
   Clock, 
@@ -51,14 +52,13 @@ interface LiveClassState {
   }>;
 }
 
-interface OnlineClassesProps {
-  userRole: 'teacher' | 'student';
-}
-
-const OnlineClasses: React.FC<OnlineClassesProps> = ({ userRole }) => {
+const OnlineClasses: React.FC = () => {
+  const { user } = useAuth();
   const [showScheduleForm, setShowScheduleForm] = useState(false);
   const [selectedClass, setSelectedClass] = useState<OnlineClass | null>(null);
   const [newMessage, setNewMessage] = useState('');
+  
+  if (!user) return null;
   
   const [liveClassState, setLiveClassState] = useState<LiveClassState>({
     isInClass: false,
@@ -142,7 +142,7 @@ const OnlineClasses: React.FC<OnlineClassesProps> = ({ userRole }) => {
     if (newMessage.trim()) {
       const message = {
         id: Date.now().toString(),
-        sender: userRole === 'teacher' ? 'Dr. Sarah Johnson' : 'You',
+        sender: user.role === 'TEACHER' || user.role === 'ADMIN' ? 'Dr. Sarah Johnson' : 'You',
         message: newMessage,
         timestamp: new Date()
       };
@@ -275,7 +275,7 @@ const OnlineClasses: React.FC<OnlineClassesProps> = ({ userRole }) => {
                   )}
                 </button>
 
-                {userRole === 'teacher' && (
+                {(user.role === 'TEACHER' || user.role === 'ADMIN') && (
                   <button
                     onClick={toggleScreenShare}
                     className={`p-3 rounded-full transition-colors ${
@@ -362,16 +362,16 @@ const OnlineClasses: React.FC<OnlineClassesProps> = ({ userRole }) => {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold gradient-text">
-              {userRole === 'teacher' ? 'Online Classes' : 'My Classes'}
+              {user.role === 'TEACHER' || user.role === 'ADMIN' ? 'Online Classes' : 'My Classes'}
             </h1>
             <p className="text-gray-300 text-sm md:text-base">
-              {userRole === 'teacher' 
+              {user.role === 'TEACHER' || user.role === 'ADMIN'
                 ? 'Schedule and manage your live classes.' 
                 : 'Join your scheduled classes and view recordings.'
               }
             </p>
           </div>
-          {userRole === 'teacher' && (
+          {(user.role === 'TEACHER' || user.role === 'ADMIN') && (
             <button
               onClick={() => setShowScheduleForm(true)}
               className="flex items-center px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-300"
@@ -382,7 +382,7 @@ const OnlineClasses: React.FC<OnlineClassesProps> = ({ userRole }) => {
           )}
         </div>
 
-        {showScheduleForm && userRole === 'teacher' && (
+        {showScheduleForm && (user.role === 'TEACHER' || user.role === 'ADMIN') && (
           <div className="glass rounded-2xl p-4 md:p-6">
             <h3 className="text-lg font-semibold text-white mb-4">Schedule New Class</h3>
             <form className="space-y-4">
@@ -475,7 +475,7 @@ const OnlineClasses: React.FC<OnlineClassesProps> = ({ userRole }) => {
         <div className="glass rounded-2xl overflow-hidden">
           <div className="p-4 md:p-6 border-b border-white/10">
             <h3 className="text-lg font-semibold text-white">
-              {userRole === 'teacher' ? 'Scheduled Classes' : 'Your Classes'}
+              {user.role === 'TEACHER' || user.role === 'ADMIN' ? 'Scheduled Classes' : 'Your Classes'}
             </h3>
           </div>
           <div className="divide-y divide-white/10">
@@ -507,7 +507,7 @@ const OnlineClasses: React.FC<OnlineClassesProps> = ({ userRole }) => {
                           <Users className="h-4 w-4 mr-1" />
                           {class_.students} students
                         </div>
-                        {userRole === 'student' && class_.instructor && (
+                        {user.role === 'STUDENT' && class_.instructor && (
                           <span>• {class_.instructor}</span>
                         )}
                       </div>
@@ -526,10 +526,10 @@ const OnlineClasses: React.FC<OnlineClassesProps> = ({ userRole }) => {
                     )}
                     {class_.status === 'upcoming' && (
                       <button
-                        onClick={() => userRole === 'teacher' ? joinClass(class_) : joinClass(class_)}
+                        onClick={() => joinClass(class_)}
                         className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                       >
-                        {userRole === 'teacher' ? 'Start Class' : 'Join Class'}
+                        {user.role === 'TEACHER' || user.role === 'ADMIN' ? 'Start Class' : 'Join Class'}
                       </button>
                     )}
                     {class_.status === 'completed' && (
@@ -537,7 +537,7 @@ const OnlineClasses: React.FC<OnlineClassesProps> = ({ userRole }) => {
                         View Recording
                       </button>
                     )}
-                    {userRole === 'teacher' && (
+                    {(user.role === 'TEACHER' || user.role === 'ADMIN') && (
                       <button className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors">
                         <Settings className="h-4 w-4" />
                       </button>
