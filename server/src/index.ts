@@ -29,6 +29,10 @@ app.use(cors({
 app.get('/', (req, res) => {
   res.json({
     message: 'FutureCorp Server API',
+  }
+  )
+}
+)
 // Root route
 app.get("/", (_req, res) => {
   res.json({
