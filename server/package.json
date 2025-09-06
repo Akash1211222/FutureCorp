@@ -6,6 +6,9 @@
   "prisma": {
     "schema": "prisma/schema.prisma"
   },
+  "prisma": {
+    "schema": "prisma/schema.prisma"
+  },
   "scripts": {
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",

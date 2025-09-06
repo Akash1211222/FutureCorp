@@ -4,11 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "install:all": "npm install",
-    "db:setup": "cp -n .env.example .env || true && npm run prisma:generate && npm run prisma:migrate",
-    "dev:server": "npm run dev",
-    "dev:client": "npm run dev",
-    "dev:full": "concurrently \"npm:dev:server\" \"npm:dev:client\"",
+    "install:all": "npm --prefix server i && npm --prefix client i",
+    "db:setup": "cp -n server/.env.example server/.env || true && npm --prefix server run prisma:generate || true && npm --prefix server run prisma:migrate || true",
+    "dev:auto": "node scripts/dev-auto.mjs",
     "install:all": "npm install && cd server && npm install",
     "db:setup": "cp -n server/.env.example server/.env || true && cd server && npm run prisma:generate && npm run prisma:migrate",
     "dev:server": "cd server && npm run dev",
@@ -35,6 +33,8 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "cross-env": "^7.0.3",
+    "get-port": "^7.0.0",
     "@eslint/js": "^9.9.1",
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.0",

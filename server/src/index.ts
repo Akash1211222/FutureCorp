@@ -10,6 +10,8 @@ app.use(morgan("dev"));
 
 app.get("/api/health", (_req, res) => res.json({ ok: true }));
 
-app.listen(process.env.PORT || 5000, () =>
-  console.log(`API on http://localhost:${process.env.PORT || 5001}`)
+const PORT = Number(process.env.PORT) || 5050;
+app.listen(PORT, () => {
+  console.log(`API running on http://localhost:${PORT}`);
+});
 );
