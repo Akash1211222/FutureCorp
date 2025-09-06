@@ -1,4 +1,4 @@
-import { Role } from '@prisma/client';
+import { Role } from './auth.service.js';
 import { db } from '../lib/supabase.js';
 
 export interface CreateAssignmentData {
@@ -24,7 +24,7 @@ export class AssignmentsService {
       ...data,
       examples: data.examples ? JSON.stringify(data.examples) : null,
       constraints: data.constraints ? JSON.stringify(data.constraints) : null,
-      testCases: data.testCases ? JSON.stringify(data.testCases) : null,
+      test_cases: data.testCases ? JSON.stringify(data.testCases) : null,
       points: data.points || 100
     });
 
@@ -39,7 +39,7 @@ export class AssignmentsService {
       ...assignment,
       examples: assignment.examples ? JSON.parse(assignment.examples) : null,
       constraints: assignment.constraints ? JSON.parse(assignment.constraints) : null,
-      testCases: assignment.testCases ? JSON.parse(assignment.testCases) : null
+      testCases: assignment.test_cases ? JSON.parse(assignment.test_cases) : null
     }));
   }
 
@@ -51,7 +51,7 @@ export class AssignmentsService {
       ...assignment,
       examples: assignment.examples ? JSON.parse(assignment.examples) : null,
       constraints: assignment.constraints ? JSON.parse(assignment.constraints) : null,
-      testCases: assignment.testCases ? JSON.parse(assignment.testCases) : null
+      testCases: assignment.test_cases ? JSON.parse(assignment.test_cases) : null
     };
   }
 

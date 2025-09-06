@@ -1,4 +1,4 @@
-import { Role } from '@prisma/client';
+import { Role } from './auth.service.js';
 import { db } from '../lib/supabase.js';
 
 export interface CreateClassData {

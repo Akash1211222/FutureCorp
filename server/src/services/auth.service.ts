@@ -1,7 +1,13 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { Role } from '@prisma/client';
 import { db } from '../lib/supabase.js';
+
+// Define the Role enum locally since we're using Supabase
+export enum Role {
+  STUDENT = 'STUDENT',
+  TEACHER = 'TEACHER',
+  ADMIN = 'ADMIN'
+}
 
 export interface RegisterData {
   name: string;

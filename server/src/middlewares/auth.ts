@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { Role } from '@prisma/client';
+import { Role } from '../services/auth.service.js';
 import { db } from '../lib/supabase.js';
 
 export interface AuthRequest extends Request {
