@@ -16,125 +16,56 @@ enum Role {
   ADMIN
 }
 
-enum AssignmentStatus {
-  DRAFT
-  ACTIVE
-  COMPLETED
-}
-
-enum ClassStatus {
-  SCHEDULED
-  LIVE
-  COMPLETED
-}
-
 model User {
-  id        String   @id @default(cuid())
-  name      String
-  email     String   @unique
-  password  String
-  role      Role     @default(STUDENT)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  submissions     Submission[]
-  createdClasses  LiveClass[]
-  classEnrollments ClassEnrollment[]
-  assignmentCreated Assignment[] @relation("AssignmentCreator")
-  assignmentAssigned AssignmentStudent[]
+  id          String   @id @default(cuid())
+  name        String
+  email       String   @unique
+  password    String
+  role        Role     @default(STUDENT)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  submissions Submission[]
 
   @@map("users")
 }
 
 model Assignment {
-  id          String           @id @default(cuid())
+  id          String   @id @default(cuid())
   title       String
   description String
   difficulty  String
   category    String
-  examples    String?          // JSON string
-  constraints String?          // JSON string
-  testCases   String?          // JSON string
-  hints       String?          // JSON string
-  points      Int              @default(100)
-  status      AssignmentStatus @default(ACTIVE)
-  createdById String
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
-
-  // Relations
-  createdBy         User                @relation("AssignmentCreator", fields: [createdById], references: [id])
-  submissions       Submission[]
-  assignedStudents  AssignmentStudent[]
+  examples    String?
+  constraints String?
+  testCases   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  submissions Submission[]
 
   @@map("assignments")
 }
 
-model AssignmentStudent {
-  id           String   @id @default(cuid())
-  assignmentId String
-  studentId    String
-  dueDate      DateTime?
-  createdAt    DateTime @default(now())
-
-  // Relations
-  assignment Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
-  student    User       @relation(fields: [studentId], references: [id], onDelete: Cascade)
-
-  @@unique([assignmentId, studentId])
-  @@map("assignment_students")
-}
-
-model Submission {
-  id           String   @id @default(cuid())
-  assignmentId String
-  studentId    String
-  code         String
-  result       String?  // JSON string
-  score        Int?
-  passed       Boolean  @default(false)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  // Relations
-  assignment Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
-  student    User       @relation(fields: [studentId], references: [id], onDelete: Cascade)
-
-  @@map("submissions")
-}
-
 model LiveClass {
-  id          String      @id @default(cuid())
-  title       String
-  description String?
-  course      String?
-  schedule    DateTime
-  duration    Int         @default(60) // minutes
-  status      ClassStatus @default(SCHEDULED)
-  meetingUrl  String?
-  createdById String
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-
-  // Relations
-  createdBy   User              @relation(fields: [createdById], references: [id])
-  enrollments ClassEnrollment[]
+  id        String   @id @default(cuid())
+  title     String
+  schedule  DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("live_classes")
 }
 
-model ClassEnrollment {
-  id        String   @id @default(cuid())
-  classId   String
-  studentId String
-  joinedAt  DateTime?
-  createdAt DateTime @default(now())
+model Submission {
+  id           String     @id @default(cuid())
+  assignmentId String
+  studentId    String
+  code         String
+  result       String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
 
-  // Relations
-  class   LiveClass @relation(fields: [classId], references: [id], onDelete: Cascade)
-  student User      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  assignment Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  student    User       @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
-  @@unique([classId, studentId])
-  @@map("class_enrollments")
+  @@map("submissions")
 }
