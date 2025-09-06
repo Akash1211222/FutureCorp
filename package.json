@@ -6,9 +6,9 @@
   "scripts": {
     "dev": "vite",
     "server": "npm run prisma:generate && npm run prisma:migrate && npm run server:dev",
-    "server:dev": "ts-node-dev --respawn --transpile-only server/src/index.ts",
-    "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev",
+    "server:dev": "cd server && npm run dev",
+    "prisma:generate": "npx prisma generate --schema server/prisma/schema.prisma",
+    "prisma:migrate": "npx prisma migrate dev --schema server/prisma/schema.prisma",
     "db:seed": "ts-node-dev --transpile-only server/src/seed.ts",
     "dev:full": "concurrently \"npm run server\" \"npm run dev\"",
     "build": "vite build",
