@@ -43,6 +43,24 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(morgan("combined"));
 
+// Root route handler - must come before API routes
+app.get('/', (req, res) => {
+  res.json({
+    message: "FutureCorp's Learning Management System API",
+    version: "1.0.0",
+    status: "running",
+    endpoints: {
+      health: "/api/health",
+      auth: "/api/auth",
+      users: "/api/users", 
+      assignments: "/api/assignments",
+      classes: "/api/classes"
+    },
+    timestamp: new Date().toISOString(),
+    documentation: "Visit /api/health for server status"
+  });
+});
+
 // Health check
 app.get("/api/health", (_req, res) => {
   res.json({ 
