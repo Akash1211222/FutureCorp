@@ -6,6 +6,7 @@ import { ErrorBoundary } from 'react-error-boundary';
 // Store providers
 import { AuthProvider } from './stores/authStore';
 import { LiveClassProvider } from './stores/liveClassStore';
+import { LiveClassProvider } from './stores/liveClassStore';
 import { ThemeProvider } from './stores/themeStore';
 
 // Layout components
@@ -82,6 +83,8 @@ function App() {
                   </Routes>
                 </Suspense>
               </div>
+            </Router>
+          </LiveClassProvider>
             </Router>
           </LiveClassProvider>
         </AuthProvider>
