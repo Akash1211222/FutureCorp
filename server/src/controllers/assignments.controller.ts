@@ -1,6 +1,6 @@
 import { Response, NextFunction } from 'express';
 import { z } from 'zod';
-import { AssignmentsService } from '../services/assignments.service.js';
+import { AssignmentsService, CreateAssignmentData } from '../services/assignments.service.js';
 import { AuthRequest } from '../middlewares/auth.js';
 
 const createAssignmentSchema = z.object({
@@ -22,18 +22,20 @@ export class AssignmentsController {
   static async createAssignment(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const validatedData = createAssignmentSchema.parse(req.body);
-      const assignment = await AssignmentsService.createAssignment(validatedData);
-      
-      res.status(201).json({
-        message: 'Assignment created successfully',
-        assignment
-      });
+      const assignmentData: CreateAssignmentData = {
+        title: validatedData.title,
+        description: validatedData.description,
+        difficulty: validatedData.difficulty,
+        category: validatedData.category,
+        examples: validatedData.examples,
+        constraints: validatedData.constraints,
+        testCases: validatedData.testCases
+      };
+      const assignment = await AssignmentsService.createAssignment(assignmentData);
+      res.status(201).json({ message: 'Assignment created successfully', assignment });
     } catch (error: any) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({
-          message: 'Validation error',
-          errors: error.errors
-        });
+        return res.status(400).json({ message: 'Validation error', errors: error.errors });
       }
       next(error);
     }
@@ -41,11 +43,7 @@ export class AssignmentsController {
 
   static async getAssignments(req: AuthRequest, res: Response, next: NextFunction) {
     try {
-      const assignments = await AssignmentsService.getAssignments(
-        req.user!.id,
-        req.user!.role
-      );
-      
+      const assignments = await AssignmentsService.getAssignments(req.user!.id, req.user!.role);
       res.json(assignments);
     } catch (error) {
       next(error);
@@ -56,7 +54,6 @@ export class AssignmentsController {
     try {
       const { id } = req.params;
       const assignment = await AssignmentsService.getAssignmentById(id);
-      
       res.json(assignment);
     } catch (error) {
       next(error);
@@ -67,20 +64,14 @@ export class AssignmentsController {
     try {
       const validatedData = submitSolutionSchema.parse(req.body);
       const submission = await AssignmentsService.submitSolution({
-        ...validatedData,
+        assignmentId: validatedData.assignmentId,
+        code: validatedData.code,
         studentId: req.user!.id
       });
-      
-      res.status(201).json({
-        message: 'Solution submitted successfully',
-        submission
-      });
+      res.status(201).json({ message: 'Solution submitted successfully', submission });
     } catch (error: any) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({
-          message: 'Validation error',
-          errors: error.errors
-        });
+        return res.status(400).json({ message: 'Validation error', errors: error.errors });
       }
       next(error);
     }

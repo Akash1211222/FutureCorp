@@ -26,8 +26,8 @@ export class UsersService {
     }
 
     // Get user submissions (simplified for now)
-    const totalSubmissions = 0; // Would query submissions table
-    const recentSubmissions = []; // Would query recent submissions
+    const totalSubmissions: number = 0; // Would query submissions table
+    const recentSubmissions: any[] = []; // Would query recent submissions
 
     return {
       totalSubmissions,

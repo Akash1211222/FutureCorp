@@ -80,8 +80,8 @@ export const db = {
       .select('*')
       .eq('email', email)
       .single();
-    
-    if (error && error.code !== 'PGRST116') throw error;
+
+    if (error && (error as any).code !== 'PGRST116') throw error;
     return data;
   },
 
@@ -180,17 +180,23 @@ export const db = {
       throw new Error('Supabase not configured');
     }
 
-    const { data, error } = await supabase
+    const response: any = await supabase
       .from('submissions')
       .select(`
         *,
         student:users(id, name, email)
       `)
-      .eq('assignment_id', assignmentId)
-      .order('created_at', { ascending: false });
-    
+      .eq('assignment_id', assignmentId);
+
+    const { data, error } = response;
+
     if (error) throw error;
-    return data;
+
+    const sortedData = (data || []).sort((a: any, b: any) =>
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
+
+    return sortedData;
   },
 
   // Live Classes

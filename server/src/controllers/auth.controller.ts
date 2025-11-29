@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
-import { AuthService } from '../services/auth.service.js';
+import { AuthService, RegisterData, LoginData } from '../services/auth.service.js';
 import { AuthRequest } from '../middlewares/auth.js';
 
 const registerSchema = z.object({
@@ -19,18 +19,17 @@ export class AuthController {
   static async register(req: Request, res: Response, next: NextFunction) {
     try {
       const validatedData = registerSchema.parse(req.body);
-      const result = await AuthService.register(validatedData);
-      
-      res.status(201).json({
-        message: 'User registered successfully',
-        ...result
-      });
+      const registerData: RegisterData = {
+        name: validatedData.name,
+        email: validatedData.email,
+        password: validatedData.password,
+        role: validatedData.role as any || 'STUDENT' as any
+      };
+      const result = await AuthService.register(registerData);
+      res.status(201).json({ message: 'User registered successfully', ...result });
     } catch (error: any) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({
-          message: 'Validation error',
-          errors: error.errors
-        });
+        return res.status(400).json({ message: 'Validation error', errors: error.errors });
       }
       next(error);
     }
@@ -39,18 +38,15 @@ export class AuthController {
   static async login(req: Request, res: Response, next: NextFunction) {
     try {
       const validatedData = loginSchema.parse(req.body);
-      const result = await AuthService.login(validatedData);
-      
-      res.json({
-        message: 'Login successful',
-        ...result
-      });
+      const loginData: LoginData = {
+        email: validatedData.email,
+        password: validatedData.password
+      };
+      const result = await AuthService.login(loginData);
+      res.json({ message: 'Login successful', ...result });
     } catch (error: any) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({
-          message: 'Validation error',
-          errors: error.errors
-        });
+        return res.status(400).json({ message: 'Validation error', errors: error.errors });
       }
       next(error);
     }
@@ -61,7 +57,6 @@ export class AuthController {
       if (!req.user) {
         return res.status(401).json({ message: 'Not authenticated' });
       }
-      
       const user = await AuthService.getProfile(req.user.id);
       res.json(user);
     } catch (error) {

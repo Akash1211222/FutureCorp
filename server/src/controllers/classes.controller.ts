@@ -1,6 +1,6 @@
 import { Response, NextFunction } from 'express';
 import { z } from 'zod';
-import { ClassesService } from '../services/classes.service.js';
+import { ClassesService, CreateClassData } from '../services/classes.service.js';
 import { AuthRequest } from '../middlewares/auth.js';
 
 const createClassSchema = z.object({
@@ -16,22 +16,17 @@ export class ClassesController {
     try {
       const validatedData = createClassSchema.parse(req.body);
       const schedule = new Date(validatedData.schedule);
-      
-      const liveClass = await ClassesService.createClass({
-        ...validatedData,
-        schedule
-      });
-      
-      res.status(201).json({
-        message: 'Class created successfully',
-        class: liveClass
-      });
+      const classData: CreateClassData = {
+        title: validatedData.title,
+        description: validatedData.description,
+        schedule,
+        duration: validatedData.duration
+      };
+      const liveClass = await ClassesService.createClass(classData);
+      res.status(201).json({ message: 'Class created successfully', class: liveClass });
     } catch (error: any) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({
-          message: 'Validation error',
-          errors: error.errors
-        });
+        return res.status(400).json({ message: 'Validation error', errors: error.errors });
       }
       next(error);
     }
@@ -39,11 +34,7 @@ export class ClassesController {
 
   static async getClasses(req: AuthRequest, res: Response, next: NextFunction) {
     try {
-      const classes = await ClassesService.getClasses(
-        req.user!.id,
-        req.user!.role
-      );
-      
+      const classes = await ClassesService.getClasses(req.user!.id, req.user!.role);
       res.json(classes);
     } catch (error) {
       next(error);
@@ -54,7 +45,6 @@ export class ClassesController {
     try {
       const { id } = req.params;
       const liveClass = await ClassesService.getClassById(id);
-      
       res.json(liveClass);
     } catch (error) {
       next(error);
@@ -65,11 +55,7 @@ export class ClassesController {
     try {
       const { id } = req.params;
       const liveClass = await ClassesService.startClass(id, req.user!.id);
-      
-      res.json({
-        message: 'Class started successfully',
-        class: liveClass
-      });
+      res.json({ message: 'Class started successfully', class: liveClass });
     } catch (error) {
       next(error);
     }
@@ -79,11 +65,7 @@ export class ClassesController {
     try {
       const { id } = req.params;
       const liveClass = await ClassesService.joinClass(id, req.user!.id);
-      
-      res.json({
-        message: 'Joined class successfully',
-        class: liveClass
-      });
+      res.json({ message: 'Joined class successfully', class: liveClass });
     } catch (error) {
       next(error);
     }

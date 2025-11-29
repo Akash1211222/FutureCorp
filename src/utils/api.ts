@@ -185,35 +185,5 @@ class ApiClient {
   }
 }
 
-
-  // Classes methods
-  async getClasses() {
-    return this.request('/classes');
-  }
-
-  async getClassById(id: string) {
-    return this.request(`/classes/${id}`);
-  }
-
-  async createClass(classData: any) {
-    return this.request('/classes', {
-      method: 'POST',
-      body: JSON.stringify(classData),
-    });
-  }
-
-  async startClass(id: string) {
-    return this.request(`/classes/${id}/start`, {
-      method: 'POST',
-    });
-  }
-
-  async joinClass(id: string) {
-    return this.request(`/classes/${id}/join`, {
-      method: 'POST',
-    });
-  }
-}
-
 export const apiClient = new ApiClient();
 export default apiClient;
