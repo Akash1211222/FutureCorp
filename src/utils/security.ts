@@ -70,10 +70,12 @@ export class SecurityUtils {
   // Prevent clickjacking
   static preventClickjacking(): void {
     if (window.top !== window.self) {
-      window.top!.location = window.self.location;
+      try {
+        window.top!.location = window.self.location;
+      } catch (e) {
+        // Silently fail if we can't access parent frame (expected in iframes)
+        document.body.style.display = 'none';
+      }
     }
   }
 }
-
-// Initialize security measures
-SecurityUtils.preventClickjacking();

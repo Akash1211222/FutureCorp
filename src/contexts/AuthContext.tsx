@@ -2,7 +2,6 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { supabase } from '../lib/supabase';
 import { logger } from '../utils/logger';
 import { SecurityUtils } from '../utils/security';
-import { useToast } from '../components/Toast';
 
 interface User {
   id: string;
@@ -41,7 +40,6 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const { showToast } = useToast();
 
   useEffect(() => {
     const initAuth = async () => {
@@ -85,11 +83,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
         if (userData) {
           setUser(userData);
-          showToast({
-            type: 'success',
-            title: 'Welcome back!',
-            message: `Signed in as ${userData.name}`
-          });
+          logger.info('User signed in', { userId: userData.id });
         }
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
@@ -184,11 +178,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         if (profileData) {
           setUser(profileData);
           logger.info('Registration successful', { userId: profileData.id, role: profileData.role });
-          showToast({
-            type: 'success',
-            title: 'Account created!',
-            message: `Welcome to FutureCorp's Learning Platform, ${profileData.name}!`
-          });
         }
       }
     } catch (error: any) {
@@ -202,11 +191,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       logger.info('User logging out', { userId: user?.id });
       await supabase.auth.signOut();
       setUser(null);
-      showToast({
-        type: 'info',
-        title: 'Signed out',
-        message: 'You have been successfully signed out'
-      });
     } catch (error) {
       logger.error('Logout failed', { error });
     }
